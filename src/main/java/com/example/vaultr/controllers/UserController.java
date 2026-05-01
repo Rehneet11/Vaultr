@@ -2,11 +2,9 @@ package com.example.vaultr.controllers;
 
 import com.example.vaultr.dto.CreateUserRequestDTO;
 import com.example.vaultr.dto.CreateUserResponseDTO;
+import com.example.vaultr.dto.UserResponseDTO;
 import com.example.vaultr.services.IUserService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/user")
@@ -20,5 +18,10 @@ public class UserController {
     @PostMapping("/create-user")
     public CreateUserResponseDTO createUser(@RequestBody CreateUserRequestDTO userRequestDTO){
         return userService.createUser(userRequestDTO);
+    }
+
+    @GetMapping("/{id}")
+    public UserResponseDTO getUserById(@PathVariable Long id) throws Exception{
+        return userService.getUserById(id);
     }
 }

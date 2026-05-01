@@ -1,0 +1,48 @@
+package com.example.vaultr.saga;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+@Builder
+@NoArgsConstructor
+@Data
+public class SAGAContext {
+    private Map<String, Object> context;
+    public SAGAContext(Map<String,Object> context){
+        if(context!=null){
+            this.context=context;
+        }
+        else{
+            context=new HashMap<>();
+        }
+    }
+    public void addContext(String key, Object value){
+        context.put(key,value);
+    }
+    public Object getContext(String key){
+        return context.get(key);
+    }
+
+    public Long getLong(String key){
+        Object val= getContext(key);
+        if(val instanceof Number){
+            return ((Number) val).longValue();
+        }
+        return null;
+    }
+
+    public BigDecimal getBigDecimal(String key){
+        Object val = getContext(key);
+        if(val instanceof Number){
+            return BigDecimal.valueOf(((Number) val).doubleValue());
+        }
+        return null;
+    }
+}

@@ -1,22 +1,15 @@
 package com.example.vaultr.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "user")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+@Getter
+public class User extends BaseEntity {
     private String name;
 
     private String email;
