@@ -1,5 +1,6 @@
 package com.example.vaultr.saga;
 
+import com.example.vaultr.enums.TransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,6 +43,23 @@ public class SAGAContext {
         Object val = getContext(key);
         if(val instanceof Number){
             return BigDecimal.valueOf(((Number) val).doubleValue());
+        }
+        return null;
+    }
+    public String getString(String key){
+        Object val =getContext(key);
+        if(val instanceof String){
+            return String.valueOf(val);
+        }
+        return null;
+    }
+    public TransactionStatus getTransactionStatusEnum(String key) {
+        Object val = getContext(key);
+        if (val instanceof TransactionStatus status) {
+            return status;
+        }
+        if (val instanceof String str) {
+            return TransactionStatus.valueOf(str);
         }
         return null;
     }

@@ -1,6 +1,7 @@
 package com.example.vaultr.saga.steps;
 
 import com.example.vaultr.entities.Wallet;
+import com.example.vaultr.enums.TransactionStatus;
 import com.example.vaultr.repositories.WalletRepository;
 import com.example.vaultr.saga.SAGAContext;
 import jakarta.transaction.Transactional;
@@ -31,6 +32,7 @@ public class StepCreditDestinationWallet implements SAGAStep{
         walletRepository.save(wallet);
 
         context.addContext("DestinationWalletBalanceAfterCredit",wallet.getBalance());
+        context.addContext("TransactionStatusAfterCreditSuccess", TransactionStatus.COMPLETED);
 
         return true;
     }
@@ -48,6 +50,7 @@ public class StepCreditDestinationWallet implements SAGAStep{
         walletRepository.save(wallet);
 
         context.addContext("DestinationWalletBalanceAfterCreditCompensation",wallet.getBalance());
+        context.addContext("TransactionStatusAfterCreditCompensated", TransactionStatus.FAILED);
 
         return true;
     }

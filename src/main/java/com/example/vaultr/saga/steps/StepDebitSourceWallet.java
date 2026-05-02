@@ -1,12 +1,15 @@
 package com.example.vaultr.saga.steps;
 
 import com.example.vaultr.entities.Wallet;
+import com.example.vaultr.enums.TransactionStatus;
 import com.example.vaultr.repositories.WalletRepository;
 import com.example.vaultr.saga.SAGAContext;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
+@Service
 public class StepDebitSourceWallet implements SAGAStep{
     private final WalletRepository walletRepository;
 
@@ -23,16 +26,13 @@ public class StepDebitSourceWallet implements SAGAStep{
         Wallet wallet = walletRepository.findByIdWithLock(sourceWalletId)
                 .orElseThrow(()-> new Exception("Cannot Find Wallet"));
 
-        if(!wallet.hasEnoughBalance(amount)){
-            return false;
-        }
-
-        context.addContext("DestinationWalletBalanceBeforeDebit",wallet.getBalance());
+        context.addContext("SourceWalletBalanceBeforeDebit",wallet.getBalance());
 
         wallet.debitAmount(amount);
         walletRepository.save(wallet);
 
-        context.addContext("DestinationWalletBalanceAfterDebit",wallet.getBalance());
+        context.addContext("SourceWalletBalanceAfterDebit",wallet.getBalance());
+        context.addContext("TransactionStatusAfterDebitSuccess", TransactionStatus.COMPLETED);
 
         return true;
     }
@@ -50,6 +50,7 @@ public class StepDebitSourceWallet implements SAGAStep{
         walletRepository.save(wallet);
 
         context.addContext("DestinationWalletBalanceAfterDebitCompensation",wallet.getBalance());
+        context.addContext("TransactionStatusAfterDebitCompensated",TransactionStatus.FAILED);
 
         return true;
     }

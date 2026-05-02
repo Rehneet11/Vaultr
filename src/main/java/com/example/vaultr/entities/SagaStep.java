@@ -3,6 +3,7 @@ import com.example.vaultr.enums.StepStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -13,6 +14,7 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "saga_step")
+@Getter
 public class SagaStep extends BaseEntity{
     @Column(name = "saga_instance_id",nullable = false)
     private Long sagaInstanceId;

@@ -8,4 +8,5 @@ public enum StepStatus{
     FAILED,
     COMPENSATING,
     COMPENSATED,
+    SKIPPED
 }
