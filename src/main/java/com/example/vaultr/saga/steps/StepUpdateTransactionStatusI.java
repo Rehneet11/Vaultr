@@ -1,15 +1,16 @@
 package com.example.vaultr.saga.steps;
 
 import com.example.vaultr.entities.Transaction;
+import com.example.vaultr.enums.SagaStepType;
 import com.example.vaultr.enums.TransactionStatus;
 import com.example.vaultr.repositories.TransactionRepository;
 import com.example.vaultr.saga.SAGAContext;
 import jakarta.transaction.Transactional;
 
-public class StepUpdateTransactionStatus implements SAGAStep{
+public class StepUpdateTransactionStatusI implements ISagaStep {
     private final TransactionRepository transactionRepository;
 
-    public StepUpdateTransactionStatus(TransactionRepository transactionRepository) {
+    public StepUpdateTransactionStatusI(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
@@ -56,6 +57,6 @@ public class StepUpdateTransactionStatus implements SAGAStep{
 
     @Override
     public String getStepName() {
-        return "StepUpdateTransactionStatus";
+        return SagaStepType.UPDATE_TRANSACTION_STATUS.toString();
     }
 }

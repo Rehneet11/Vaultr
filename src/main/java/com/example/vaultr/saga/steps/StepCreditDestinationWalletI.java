@@ -1,6 +1,7 @@
 package com.example.vaultr.saga.steps;
 
 import com.example.vaultr.entities.Wallet;
+import com.example.vaultr.enums.SagaStepType;
 import com.example.vaultr.enums.TransactionStatus;
 import com.example.vaultr.repositories.WalletRepository;
 import com.example.vaultr.saga.SAGAContext;
@@ -10,29 +11,29 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 
 @Service
-public class StepDebitSourceWallet implements SAGAStep{
+public class StepCreditDestinationWalletI implements ISagaStep {
     private final WalletRepository walletRepository;
 
-    public StepDebitSourceWallet(WalletRepository walletRepository) {
+    public StepCreditDestinationWalletI(WalletRepository walletRepository) {
         this.walletRepository = walletRepository;
     }
 
     @Override
     @Transactional
     public boolean execute(SAGAContext context) throws Exception {
-        Long sourceWalletId = context.getLong("sourceWalletId");
+        Long destinationWalletId = context.getLong("destinationWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
 
-        Wallet wallet = walletRepository.findByIdWithLock(sourceWalletId)
+        Wallet wallet = walletRepository.findByIdWithLock(destinationWalletId)
                 .orElseThrow(()-> new Exception("Cannot Find Wallet"));
 
-        context.addContext("SourceWalletBalanceBeforeDebit",wallet.getBalance());
+        context.addContext("DestinationWalletBalanceBeforeCredit",wallet.getBalance());
 
-        wallet.debitAmount(amount);
+        wallet.creditAmount(amount);
         walletRepository.save(wallet);
 
-        context.addContext("SourceWalletBalanceAfterDebit",wallet.getBalance());
-        context.addContext("TransactionStatusAfterDebitSuccess", TransactionStatus.COMPLETED);
+        context.addContext("DestinationWalletBalanceAfterCredit",wallet.getBalance());
+        context.addContext("TransactionStatusAfterCreditSuccess", TransactionStatus.COMPLETED);
 
         return true;
     }
@@ -40,23 +41,23 @@ public class StepDebitSourceWallet implements SAGAStep{
     @Override
     @Transactional
     public boolean compensate(SAGAContext context) throws Exception {
-        Long sourceWalletId = context.getLong("sourceWalletId");
+        Long destinationWalletId = context.getLong("destinationWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
 
-        Wallet wallet = walletRepository.findByIdWithLock(sourceWalletId)
+        Wallet wallet = walletRepository.findByIdWithLock(destinationWalletId)
                 .orElseThrow(()-> new Exception("Cannot Find Wallet"));
 
-        wallet.creditAmount(amount);
+        wallet.debitAmount(amount);
         walletRepository.save(wallet);
 
-        context.addContext("DestinationWalletBalanceAfterDebitCompensation",wallet.getBalance());
-        context.addContext("TransactionStatusAfterDebitCompensated",TransactionStatus.FAILED);
+        context.addContext("DestinationWalletBalanceAfterCreditCompensation",wallet.getBalance());
+        context.addContext("TransactionStatusAfterCreditCompensated", TransactionStatus.FAILED);
 
         return true;
     }
 
     @Override
     public String getStepName() {
-        return "StepDebitSourceWallet";
+        return SagaStepType.CREDIT_DESTINATION_WALLET.toString();
     }
 }
