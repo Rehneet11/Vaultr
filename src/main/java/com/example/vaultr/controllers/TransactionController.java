@@ -1,5 +1,6 @@
 package com.example.vaultr.controllers;
 
+import com.example.vaultr.annotations.Idempotent;
 import com.example.vaultr.dto.TransferRequestDTO;
 import com.example.vaultr.dto.TransferResponseDTO;
 import com.example.vaultr.entities.Transaction;
@@ -23,6 +24,7 @@ public class TransactionController {
         this.transferSAGAService = transferSAGAService;
     }
 
+    @Idempotent
     @PostMapping
     public ResponseEntity<TransferResponseDTO> createTransaction(@RequestBody TransferRequestDTO transferRequestDTO) throws Exception {
         Long sagaInstanceId= transferSAGAService.initiateTransfer(transferRequestDTO);
