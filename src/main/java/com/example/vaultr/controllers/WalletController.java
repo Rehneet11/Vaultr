@@ -1,0 +1,61 @@
+package com.example.vaultr.controllers;
+
+import com.example.vaultr.dto.CreateWalletRequestDTO;
+import com.example.vaultr.dto.CreditWalletRequestDTO;
+import com.example.vaultr.dto.DebitWalletRequestDTO;
+import com.example.vaultr.entities.Wallet;
+import com.example.vaultr.services.IWalletService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+
+@RestController
+@RequestMapping("api/wallets")
+@Slf4j
+public class WalletController {
+    private final IWalletService walletService;
+
+    public WalletController(IWalletService walletService) {
+        this.walletService = walletService;
+    }
+
+    @PostMapping("/create_wallet")
+    public ResponseEntity<Wallet> createWallet(@RequestBody CreateWalletRequestDTO requestDTO) throws Exception {
+        Wallet createdWallet = walletService.createWallet(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdWallet);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Wallet> getWalletById(@PathVariable Long id) throws Exception {
+        Wallet wallet = walletService.getWalletById(id);
+        return ResponseEntity.ok(wallet);
+    }
+
+    @GetMapping("/balance/{id}")
+    public ResponseEntity<BigDecimal> getWalletBalanceById(@PathVariable Long id) throws Exception {
+        BigDecimal balance= walletService.getWalletBalance(id);
+        return ResponseEntity.ok(balance);
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<Wallet> getWalletByUserId(@PathVariable Long id) throws Exception{
+        Wallet wallet = walletService.getWalletByUserId(id);
+        return ResponseEntity.ok(wallet);
+    }
+
+    @PostMapping("/debit_wallet")
+    public ResponseEntity<Wallet> debitWallet(@RequestBody DebitWalletRequestDTO requestDTO) throws Exception {
+        Wallet wallet = walletService.debitMoneyFromWallet(requestDTO);
+        return ResponseEntity.ok(wallet);
+    }
+
+    @PostMapping("/credit_wallet")
+    public ResponseEntity<Wallet> creditWallet(@RequestBody CreditWalletRequestDTO requestDTO) throws Exception{
+        Wallet wallet = walletService.creditMoneyToWallet(requestDTO);
+        return ResponseEntity.ok(wallet);
+    }
+}

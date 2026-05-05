@@ -6,7 +6,9 @@ import com.example.vaultr.enums.TransactionStatus;
 import com.example.vaultr.repositories.TransactionRepository;
 import com.example.vaultr.saga.SAGAContext;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
 
+@Service
 public class StepUpdateTransactionStatusI implements ISagaStep {
     private final TransactionRepository transactionRepository;
 

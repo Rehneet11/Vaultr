@@ -6,6 +6,7 @@ import com.example.vaultr.enums.SagaStatus;
 import com.example.vaultr.enums.StepStatus;
 import com.example.vaultr.repositories.SagaInstanceRepository;
 import com.example.vaultr.repositories.SagaStepRepository;
+import com.example.vaultr.repositories.TransactionRepository;
 import com.example.vaultr.saga.steps.ISagaStep;
 import com.example.vaultr.saga.steps.SagaStepFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +23,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
     private final SagaStepFactory sagaStepFactory;
     private final SagaStepRepository sagaStepRepository;
 
-    public SagaOrchestrator(ObjectMapper objectMapper, SagaInstanceRepository sagaInstanceRepository, SagaStepFactory sagaStepFactory, SagaStepRepository sagaStepRepository) {
+    public SagaOrchestrator(ObjectMapper objectMapper, SagaInstanceRepository sagaInstanceRepository, SagaStepFactory sagaStepFactory, SagaStepRepository sagaStepRepository, TransactionRepository transactionRepository) {
         this.objectMapper = objectMapper;
         this.sagaInstanceRepository = sagaInstanceRepository;
         this.sagaStepFactory = sagaStepFactory;
@@ -57,6 +58,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
                 .orElseThrow(()-> new Exception("Cannot Find Saga Instance"));
         sagaInstance.markAsCompleted();
         sagaInstanceRepository.save(sagaInstance);
+
     }
 
     @Override
@@ -66,6 +68,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
                 .orElseThrow(()-> new Exception("Cannot Find Saga"));
         sagaInstance.markAsFailed();
         sagaInstanceRepository.save(sagaInstance);
+        compensateSaga(sagaInstanceId);
     }
 
     @Override

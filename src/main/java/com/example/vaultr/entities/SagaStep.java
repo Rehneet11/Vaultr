@@ -21,14 +21,15 @@ public class SagaStep extends BaseEntity{
     private String stepName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Builder.Default
+    @Column(name = "status", nullable = false, columnDefinition = "varchar(50)")
     private StepStatus status=StepStatus.STARTED;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "step_data",columnDefinition = "jsonb")
+    @Column(name = "step_data",columnDefinition = "json")
     private String StepData;
 
-    @Column(name = "error_message", nullable = false)
+    @Column(name = "error_message")
     private String errorMessage;
 
     public void markAsCompleted(){

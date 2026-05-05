@@ -23,14 +23,16 @@ public class Transaction extends BaseEntity{
     @Column(name = "amount",nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "saga_instance_id",nullable = false)
+    @Column(name = "saga_instance_id")
     private Long sagaInstanceId;
 
     @Enumerated(EnumType.STRING)
     @Column(name="status", nullable = false)
+    @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     @Column(name="transaction_type",nullable = false)
     private TransactionType transactionType=TransactionType.TRANSFER;
 }

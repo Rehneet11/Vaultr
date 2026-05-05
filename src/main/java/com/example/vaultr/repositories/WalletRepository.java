@@ -8,14 +8,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface WalletRepository extends JpaRepository<Wallet,Long> {
-    Wallet findByUserId(Long userId);
+public interface WalletRepository extends JpaRepository<Wallet, Long> {
+
+    Optional<Wallet> findByUserId(Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT w from Wallet W where w.id = :id")
+    @Query("SELECT w FROM Wallet w WHERE w.userId = :userId")
+    Optional<Wallet> findByUserIdWithLock(@Param("userId") Long userId);
+
+    @Query("SELECT w FROM Wallet w WHERE w.id = :id")
     Optional<Wallet> findByIdWithLock(@Param("id") Long walletId);
 }

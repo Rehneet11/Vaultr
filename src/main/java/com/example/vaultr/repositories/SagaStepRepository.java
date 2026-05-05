@@ -22,7 +22,7 @@ public interface SagaStepRepository extends JpaRepository<SagaStep,Long> {
     @Query("SELECT s from SagaStep s where s.sagaInstanceId = :sagaInstanceId AND s.status IN ('COMPLETED', 'COMPENSATED')")
     List<SagaStep> findCompletedOrCompensatedStepsBySagaInstanceId(@Param("sagaInstanceId") Long sagaInstanceId);
 
-    @Query("SELECT s from SagaStep s where s.stepName = :stepName AND s.sagaInstanceId = :sgaInstanceId AND s.status = :status")
+    @Query("SELECT s from SagaStep s where s.stepName = :stepName AND s.sagaInstanceId = :sagaInstanceId AND s.status = :status")
     Optional<SagaStep> findByStepNameAndSagaInstanceIdAndStatus(@Param("stepName") String stepName, @Param("sagaInstanceId") Long sagaInstanceId, @Param("status") StepStatus status);
 
 }

@@ -13,10 +13,11 @@ import java.math.BigDecimal;
 @Table(name = "Wallet")
 public class Wallet extends BaseEntity{
 
-    @Column(name = "user_id", nullable = false)
-    private Long user_id;
+    @Column(name = "user_id", nullable = false,updatable = false)
+    private Long userId;
 
     @Column(name = "balance",nullable = false)
+    @Builder.Default
     private BigDecimal balance=BigDecimal.ZERO;
 
     @Column(name = "is_Active",nullable = false)

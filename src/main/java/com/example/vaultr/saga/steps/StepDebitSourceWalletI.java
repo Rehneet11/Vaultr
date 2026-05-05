@@ -24,7 +24,7 @@ public class StepDebitSourceWalletI implements ISagaStep {
         Long sourceWalletId = context.getLong("sourceWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
 
-        Wallet wallet = walletRepository.findByIdWithLock(sourceWalletId)
+        Wallet wallet = walletRepository.findByUserIdWithLock(sourceWalletId)
                 .orElseThrow(()-> new Exception("Cannot Find Wallet"));
 
         context.addContext("SourceWalletBalanceBeforeDebit",wallet.getBalance());
@@ -44,7 +44,7 @@ public class StepDebitSourceWalletI implements ISagaStep {
         Long sourceWalletId = context.getLong("sourceWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
 
-        Wallet wallet = walletRepository.findByIdWithLock(sourceWalletId)
+        Wallet wallet = walletRepository.findByUserIdWithLock(sourceWalletId)
                 .orElseThrow(()-> new Exception("Cannot Find Wallet"));
 
         wallet.creditAmount(amount);

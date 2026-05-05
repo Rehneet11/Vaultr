@@ -14,10 +14,10 @@ public interface TransactionRepository extends JpaRepository<Transaction,Long> {
     List<Transaction> findBySourceWalletId(Long sourceWalletId);
     List<Transaction> findByDestinationWalletId(Long destinationWalletId);
 
-    @Query("Select t From Transaction where t.sourceWalletId = :walletId OR t.destinationWalletId = :walletId")
+    @Query("Select t From Transaction t where t.sourceWalletId = :walletId OR t.destinationWalletId = :walletId")
     List<Transaction> findByWalletId(@Param("walletId") Long walletId);
 
     List<Transaction> findByStatus(TransactionStatus status);
 
-    List<Transaction> findBySagaInstanceId(Long sagaInstanceId);
+    Transaction findBySagaInstanceId(Long sagaInstanceId);
 }

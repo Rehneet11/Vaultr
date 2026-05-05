@@ -17,11 +17,12 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "saga_instance")
 public class SagaInstance extends BaseEntity{
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private SagaStatus status=SagaStatus.STARTED;
+    @Column(name = "status", nullable = false, columnDefinition = "varchar(50)")
+    @Builder.Default
+    private SagaStatus status = SagaStatus.STARTED;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "context",columnDefinition = "jsonb")
+    @Column(name = "context", columnDefinition = "json")
     private String context;
 
     @Column(name = "current_step")
