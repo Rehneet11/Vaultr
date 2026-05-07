@@ -1,5 +1,6 @@
 package com.example.vaultr.entities;
 
+import com.example.vaultr.exceptions.InsufficientBalanceException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,9 +28,9 @@ public class Wallet extends BaseEntity{
         return balance.compareTo(amount)>=0;
     }
 
-    public void debitAmount(BigDecimal amount) throws Exception {
+    public void debitAmount(BigDecimal amount) {
         if(!hasEnoughBalance(amount)){
-            throw new Exception("Insufficient Balance");
+            throw new InsufficientBalanceException("Insufficient balance. Available: " + balance + ", Requested: " + amount);
         }
         balance=balance.subtract(amount);
     }

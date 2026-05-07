@@ -6,6 +6,7 @@ import com.example.vaultr.dto.TransferResponseDTO;
 import com.example.vaultr.entities.Transaction;
 import com.example.vaultr.services.ITransactionService;
 import com.example.vaultr.services.ITransferSAGAService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +27,7 @@ public class TransactionController {
 
     @Idempotent
     @PostMapping
-    public ResponseEntity<TransferResponseDTO> createTransaction(@RequestBody TransferRequestDTO transferRequestDTO) throws Exception {
+    public ResponseEntity<TransferResponseDTO> createTransaction(@Valid @RequestBody TransferRequestDTO transferRequestDTO) throws Exception {
         Long sagaInstanceId= transferSAGAService.initiateTransfer(transferRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 TransferResponseDTO.builder()

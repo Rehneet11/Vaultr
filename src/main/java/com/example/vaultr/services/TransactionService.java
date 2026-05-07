@@ -2,6 +2,8 @@ package com.example.vaultr.services;
 
 import com.example.vaultr.entities.Transaction;
 import com.example.vaultr.enums.TransactionStatus;
+import com.example.vaultr.enums.TransactionType;
+import com.example.vaultr.exceptions.ResourceNotFoundException;
 import com.example.vaultr.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -15,57 +17,58 @@ import java.util.List;
 public class TransactionService implements ITransactionService{
     private final TransactionRepository transactionRepository;
 
+
     public TransactionService(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
     @Override
-    public Transaction getTransactionById(Long id) throws Exception {
+    public Transaction getTransactionById(Long id) {
         return transactionRepository.findById(id)
-                .orElseThrow(()-> new Exception("Transaction Not Found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Transaction not found with ID: " + id));
     }
 
     @Override
-    public List<Transaction> getTransactionsByWalletId(Long walletId) throws Exception {
+    public List<Transaction> getTransactionsByWalletId(Long walletId) {
         List<Transaction> transactions =  transactionRepository.findByWalletId(walletId);
         if(transactions.isEmpty()){
-            throw new Exception ("No Transactions Found");
+            throw new ResourceNotFoundException("No transactions found for wallet ID: " + walletId);
         }
         return transactions;
     }
 
     @Override
-    public List<Transaction> getTransactionsByStatus(TransactionStatus status) throws Exception {
+    public List<Transaction> getTransactionsByStatus(TransactionStatus status) {
         List<Transaction> transactions =  transactionRepository.findByStatus(status);
         if(transactions.isEmpty()){
-            throw new Exception ("No Transactions Found");
+            throw new ResourceNotFoundException("No transactions found with status: " + status);
         }
         return transactions;
     }
 
     @Override
-    public Transaction getTransactionsBySagaInstanceId(Long sagaInstanceId) throws Exception {
+    public Transaction getTransactionsBySagaInstanceId(Long sagaInstanceId) {
         Transaction transactions =  transactionRepository.findBySagaInstanceId(sagaInstanceId);
         if(transactions==null){
-            throw new Exception ("No Transactions Found");
+            throw new ResourceNotFoundException("No transaction found for saga instance ID: " + sagaInstanceId);
         }
         return transactions;
     }
 
     @Override
-    public List<Transaction> getTransactionsBySourceWalletId(Long walletId) throws Exception {
+    public List<Transaction> getTransactionsBySourceWalletId(Long walletId) {
         List<Transaction> transactions =  transactionRepository.findBySourceWalletId(walletId);
         if(transactions.isEmpty()){
-            throw new Exception ("No Transactions Found");
+            throw new ResourceNotFoundException("No transactions found for source wallet ID: " + walletId);
         }
         return transactions;
     }
 
     @Override
-    public List<Transaction> getTransactionsByDestinationWalletId(Long walletId) throws Exception{
+    public List<Transaction> getTransactionsByDestinationWalletId(Long walletId) {
         List<Transaction> transactions =  transactionRepository.findByDestinationWalletId(walletId);
         if(transactions.isEmpty()){
-            throw new Exception ("No Transactions Found");
+            throw new ResourceNotFoundException("No transactions found for destination wallet ID: " + walletId);
         }
         return transactions;
     }
@@ -97,6 +100,45 @@ public class TransactionService implements ITransactionService{
     public void updateTransactionStatus(Long sagaInstanceId, TransactionStatus status) throws Exception {
         Transaction transaction = transactionRepository.findBySagaInstanceId(sagaInstanceId);
         transaction.setStatus(status);
+        transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
+    public Long createDepositTransaction(Long userId, BigDecimal amount) throws Exception {
+        log.info("Creating Deposit Transaction with userId {} amount {}", userId, amount);
+        Transaction transaction = Transaction.builder()
+                .sourceWalletId(userId)
+                .destinationWalletId(userId)
+                .transactionType(TransactionType.DEPOSIT)
+                .amount(amount)
+                .build();
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        log.info("Deposit Transaction Created with Id {}",savedTransaction.getId());
+        return savedTransaction.getId();
+    }
+
+    @Override
+    @Transactional
+    public Long createWithdrawTransaction(Long userId, BigDecimal amount) throws Exception {
+        log.info("Creating Withdrawal Transaction with userId {} amount {}", userId, amount);
+        Transaction transaction = Transaction.builder()
+                .sourceWalletId(userId)
+                .destinationWalletId(userId)
+                .transactionType(TransactionType.WITHDRAWAL)
+                .amount(amount)
+                .build();
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        log.info("Withdrawal Transaction Created with Id {}",savedTransaction.getId());
+        return savedTransaction.getId();
+    }
+
+    @Override
+    @Transactional
+    public void updateTransactionStatusWithTransactionId(Long transactionId, TransactionStatus status) throws Exception {
+        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(()-> new ResourceNotFoundException("Transaction not found with ID: " + transactionId));
+        transaction.setStatus(status);
+        log.info("Updating Transaction Status with Id {} and status {}",transaction.getId(), status.toString());
         transactionRepository.save(transaction);
     }
 

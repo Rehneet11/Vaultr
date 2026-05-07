@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ public class WalletController {
     }
 
     @PostMapping("/create_wallet")
-    public ResponseEntity<Wallet> createWallet(@RequestBody CreateWalletRequestDTO requestDTO) throws Exception {
+    public ResponseEntity<Wallet> createWallet(@Valid @RequestBody CreateWalletRequestDTO requestDTO) throws Exception {
         Wallet createdWallet = walletService.createWallet(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdWallet);
     }
@@ -48,13 +49,13 @@ public class WalletController {
     }
 
     @PostMapping("/debit_wallet")
-    public ResponseEntity<Wallet> debitWallet(@RequestBody DebitWalletRequestDTO requestDTO) throws Exception {
+    public ResponseEntity<Wallet> debitWallet(@Valid @RequestBody DebitWalletRequestDTO requestDTO) throws Exception {
         Wallet wallet = walletService.debitMoneyFromWallet(requestDTO);
         return ResponseEntity.ok(wallet);
     }
 
     @PostMapping("/credit_wallet")
-    public ResponseEntity<Wallet> creditWallet(@RequestBody CreditWalletRequestDTO requestDTO) throws Exception{
+    public ResponseEntity<Wallet> creditWallet(@Valid @RequestBody CreditWalletRequestDTO requestDTO) throws Exception{
         Wallet wallet = walletService.creditMoneyToWallet(requestDTO);
         return ResponseEntity.ok(wallet);
     }

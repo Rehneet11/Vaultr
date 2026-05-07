@@ -5,6 +5,10 @@ import com.example.vaultr.dto.CreateWalletRequestDTO;
 import com.example.vaultr.dto.CreditWalletRequestDTO;
 import com.example.vaultr.dto.DebitWalletRequestDTO;
 import com.example.vaultr.entities.Wallet;
+import com.example.vaultr.enums.TransactionStatus;
+import com.example.vaultr.exceptions.DuplicateResourceException;
+import com.example.vaultr.exceptions.InsufficientBalanceException;
+import com.example.vaultr.exceptions.ResourceNotFoundException;
 import com.example.vaultr.repositories.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +21,12 @@ import java.math.BigDecimal;
 public class WalletService implements IWalletService{
     private final WalletRepository walletRepository;
     private final UserService userService;
+    private final ITransactionService transactionService;
 
-    public WalletService(WalletRepository walletRepository, UserService userService) {
+    public WalletService(WalletRepository walletRepository, UserService userService, ITransactionService transactionService) {
         this.walletRepository = walletRepository;
         this.userService = userService;
+        this.transactionService = transactionService;
     }
 
     @Override
@@ -28,10 +34,10 @@ public class WalletService implements IWalletService{
     public Wallet createWallet(CreateWalletRequestDTO requestDTO) throws Exception {
         Long userId= requestDTO.getUserId();
         if(userService.getUserById(userId)==null){
-            throw new Exception("User Not Found");
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
         }
         if (walletRepository.findByUserId(userId).isPresent()){
-            throw new Exception("Wallet Already Exists with this user Id");
+            throw new DuplicateResourceException("Wallet already exists for user ID: " + userId);
         }
         Wallet wallet = Wallet.builder()
                 .userId(userId)
@@ -43,15 +49,15 @@ public class WalletService implements IWalletService{
     }
 
     @Override
-    public Wallet getWalletByUserId(Long userId) throws Exception {
+    public Wallet getWalletByUserId(Long userId) {
         return walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new Exception("Cannot Find Wallet"));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
     }
 
     @Override
-    public Wallet getWalletById(Long walletId) throws Exception {
+    public Wallet getWalletById(Long walletId) {
         return walletRepository.findById(walletId)
-                .orElseThrow(() -> new Exception("Cannot Find Wallet"));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found with ID: " + walletId));
     }
 
     @Override
@@ -60,9 +66,11 @@ public class WalletService implements IWalletService{
         Long userId=requestDTO.getUserId();
         BigDecimal amount = requestDTO.getAmount();
         Wallet wallet = walletRepository.findByUserIdWithLock(userId)
-                .orElseThrow(() -> new Exception("Cannot Find Wallet"));
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
+        Long transactionId = transactionService.createDepositTransaction(userId,amount);
         wallet.creditAmount(amount);
         walletRepository.save(wallet);
+        transactionService.updateTransactionStatusWithTransactionId(transactionId, TransactionStatus.COMPLETED);
         return wallet;
     }
 
@@ -72,21 +80,21 @@ public class WalletService implements IWalletService{
         Long userId=requestDTO.getUserId();
         BigDecimal amount = requestDTO.getAmount();
         Wallet wallet = walletRepository.findByUserIdWithLock(userId)
-                .orElseThrow(() -> new Exception("Cannot Find Wallet"));
-        if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0){
-            throw new IllegalArgumentException("Amount Must be positive");
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
+        Long transactionId = transactionService.createWithdrawTransaction(userId,amount);
         if(amount.compareTo(wallet.getBalance())>0){
-            throw new IllegalArgumentException("Insufficient Balance");
+            transactionService.updateTransactionStatusWithTransactionId(transactionId,TransactionStatus.FAILED);
+            throw new InsufficientBalanceException("Insufficient balance. Available: " + wallet.getBalance() + ", Requested: " + amount);
         }
         wallet.debitAmount(amount);
         walletRepository.save(wallet);
+        transactionService.updateTransactionStatusWithTransactionId(transactionId, TransactionStatus.COMPLETED);
         return wallet;
     }
 
     @Override
-    public BigDecimal getWalletBalance(Long walletId) throws Exception {
-        Wallet wallet =getWalletById(walletId);
+    public BigDecimal getWalletBalance(Long walletId) {
+        Wallet wallet = getWalletById(walletId);
         return wallet.getBalance();
     }
 
