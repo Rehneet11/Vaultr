@@ -16,4 +16,7 @@ public interface ITransactionService {
     Transaction createTransaction(Long sourceWalletId, Long destinationWalletId, BigDecimal amount);
     void updateTransactionWithSagaInstanceId(Long id, Long sagaInstanceId) throws Exception;
     void updateTransactionStatus(Long sagaInstanceId, TransactionStatus status) throws Exception;
+    Long createDepositTransaction(Long userId,BigDecimal amount) throws Exception;
+    Long createWithdrawTransaction(Long userId,BigDecimal amount) throws Exception;
+    void updateTransactionStatusWithTransactionId(Long transactionId, TransactionStatus status) throws Exception;
 }
