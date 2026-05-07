@@ -21,7 +21,7 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
     public boolean execute(SAGAContext context) throws Exception {
         Long transactionId = context.getLong("transactionId");
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(()-> new Exception("Transaction Cannot be found"));
+                .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Transaction not found with ID: " + transactionId));
 
         context.addContext("originalTransactionStatus",transaction.getStatus());
 
@@ -46,7 +46,7 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
     public boolean compensate(SAGAContext context) throws Exception {
         Long transactionId = context.getLong("transactionId");
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(()-> new Exception("Transaction Cannot be found"));
+                .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Transaction not found with ID: " + transactionId));
 
         TransactionStatus status = context.getTransactionStatusEnum("originalTransactionStatus");
         transaction.setStatus(status);

@@ -4,6 +4,7 @@ import com.example.vaultr.dto.CreateUserRequestDTO;
 import com.example.vaultr.dto.CreateUserResponseDTO;
 import com.example.vaultr.dto.UserResponseDTO;
 import com.example.vaultr.services.IUserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,7 +17,7 @@ public class UserController {
     }
 
     @PostMapping("/create-user")
-    public CreateUserResponseDTO createUser(@RequestBody CreateUserRequestDTO userRequestDTO){
+    public CreateUserResponseDTO createUser(@Valid @RequestBody CreateUserRequestDTO userRequestDTO){
         return userService.createUser(userRequestDTO);
     }
 

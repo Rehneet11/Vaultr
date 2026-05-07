@@ -18,10 +18,10 @@ public class SAGAContext {
     private Map<String, Object> context;
     public SAGAContext(Map<String,Object> context){
         if(context!=null){
-            this.context=context;
+            this.context=new HashMap<>(context);
         }
         else{
-            context=new HashMap<>();
+            this.context=new HashMap<>();
         }
     }
     public void addContext(String key, Object value){
