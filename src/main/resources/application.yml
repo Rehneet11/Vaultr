@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: vaultr
+
+  # ---------------------------------------------------------
+  # DATABASE CONFIGURATION (ShardingSphere)
+  # ---------------------------------------------------------
+  datasource:
+    url: jdbc:shardingsphere:classpath:sharding.yml
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+
+  # ---------------------------------------------------------
+  # JPA / HIBERNATE CONFIGURATION
+  # ---------------------------------------------------------
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # ---------------------------------------------------------
+  # KAFKA CONFIGURATION (Outbox Pattern)
+  # ---------------------------------------------------------
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      group-id: vaultr-notifications-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    listener:
+      missing-topics-fatal: false
+
+# ---------------------------------------------------------
+# OBSERVABILITY: METRICS & TRACING
+# ---------------------------------------------------------
+management:
+  tracing:
+    sampling:
+      probability: 1.0 # 100% sampling for local dev. Lower for prod.
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:9411/api/v2/spans"
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,metrics"
+  metrics:
+    tags:
+      application: "vaultr-backend"
