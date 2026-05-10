@@ -32,16 +32,14 @@ public class TransactionController {
     @PostMapping
     @RateLimiter(name = "transactionApi")
     public ResponseEntity<TransferResponseDTO> createTransaction(@Valid @RequestBody TransferRequestDTO transferRequestDTO) throws Exception {
-        String sagaInstanceId= transferSAGAService.initiateTransfer(transferRequestDTO);
+        TransferResponseDTO responseDTO = transferSAGAService.initiateTransfer(transferRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                TransferResponseDTO.builder()
-                        .sagaInstanceId(sagaInstanceId)
-                        .build()
+                responseDTO
         );
     }
 
-    @GetMapping
-    public ResponseEntity<TransactionResponseDTO> getTransactionById(@RequestParam String transactionId) throws Exception{
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<TransactionResponseDTO> getTransactionById(@PathVariable String transactionId) throws Exception{
         return ResponseEntity.status(HttpStatus.FOUND).body(transactionService.getTransactionByTransactionId(transactionId));
     }
 

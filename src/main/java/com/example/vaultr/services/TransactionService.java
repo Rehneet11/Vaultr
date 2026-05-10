@@ -31,6 +31,7 @@ public class TransactionService implements ITransactionService {
                 .sourceWalletId(transaction.getSourceWalletId())
                 .destinationWalletId(transaction.getDestinationWalletId())
                 .amount(transaction.getAmount())
+                .status(transaction.getStatus())
                 .createdAt(transaction.createdAt)
                 .build();
     }
@@ -96,6 +97,7 @@ public class TransactionService implements ITransactionService {
                 .id(IdGenerator.generateId())
                 .sourceWalletId(sourceWalletId)
                 .destinationWalletId(destinationWalletId)
+                .status(TransactionStatus.PENDING)
                 .amount(amount)
                 .build();
         Transaction savedTransaction = transactionRepository.save(transaction);
@@ -115,6 +117,7 @@ public class TransactionService implements ITransactionService {
     @Transactional
     public void updateTransactionStatus(String sagaInstanceId, TransactionStatus status) throws Exception {
         Transaction transaction = transactionRepository.findBySagaInstanceId(sagaInstanceId);
+        log.info("TransactionId {}",transaction.getId());
         transaction.setStatus(status);
         transactionRepository.save(transaction);
     }

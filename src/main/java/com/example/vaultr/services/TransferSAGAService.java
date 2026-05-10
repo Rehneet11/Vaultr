@@ -2,6 +2,7 @@ package com.example.vaultr.services;
 
 import com.example.vaultr.dto.NotificationPayloadDTO;
 import com.example.vaultr.dto.TransferRequestDTO;
+import com.example.vaultr.dto.TransferResponseDTO;
 import com.example.vaultr.entities.OutboxEvent;
 import com.example.vaultr.entities.Transaction;
 import com.example.vaultr.enums.EventStatus;
@@ -42,10 +43,10 @@ public class TransferSAGAService implements ITransferSAGAService {
     }
 
     @Override
-    @Transactional
     @CircuitBreaker(name = "databaseExecution", fallbackMethod = "fallbackSaga")
     @Retry(name = "databaseRetry")
-    public String initiateTransfer(TransferRequestDTO requestDTO) throws Exception {
+    public TransferResponseDTO initiateTransfer(TransferRequestDTO requestDTO) throws Exception {
+        long start = System.currentTimeMillis();
         String sourceWalletId = requestDTO.getSourceWalletId();
         String destinationWalletId = requestDTO.getDestinationWalletId();
         BigDecimal amount = requestDTO.getAmount();
@@ -65,12 +66,20 @@ public class TransferSAGAService implements ITransferSAGAService {
 
         transactionService.updateTransactionWithSagaInstanceId(transaction.getId(), sagaInstanceId);
         executeTransfer(sagaInstanceId);
-        return sagaInstanceId;
+        log.info("Initiate Transaction step took {} ms", System.currentTimeMillis() - start);
+        return TransferResponseDTO.builder()
+                .status(transaction.getStatus().toString())
+                .transactionId(transaction.getId())
+                .sourceWalletId(transaction.getSourceWalletId())
+                .destinationWalletId(transaction.getDestinationWalletId())
+                .amount(transaction.getAmount())
+                .createdAt(transaction.createdAt)
+                .build();
     }
 
     @Override
-    @Transactional
     public void executeTransfer(String sagaInstanceId) throws Exception {
+        long start = System.currentTimeMillis();
         log.info("Executing SAGA with id {} ", sagaInstanceId);
         System.out.println("Testing Retry for Resilience4j");
         try {
@@ -126,7 +135,7 @@ public class TransferSAGAService implements ITransferSAGAService {
                     .payload(jsonPayloadSending)
                     .status(EventStatus.PENDING)
                     .build();
-
+            log.info("Execute Transaction step took {} ms", System.currentTimeMillis() - start);
             outboxEventRepository.save(outboxEventSent);
             log.info("Outbox event saved successfully for Transaction {}", transaction.getId());
         } catch (Exception e) {
@@ -134,9 +143,10 @@ public class TransferSAGAService implements ITransferSAGAService {
             sagaOrchestrator.markSagaFailed(sagaInstanceId);
             throw new RuntimeException("Failed to finalize SAGA and save outbox event", e);
         }
+
     }
 
-    public void fallbackSaga(String sagaInstanceId, Throwable throwable) {
+    public String fallbackSaga(TransferRequestDTO requestDTO, Throwable throwable) {
         System.err.println("SAGA FAILED AFTER RETRIES OR CIRCUIT OPEN: " + throwable.getMessage());
         throw new RuntimeException("Service currently degraded. Please try again later.");
     }

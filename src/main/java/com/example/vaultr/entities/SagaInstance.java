@@ -32,6 +32,14 @@ public class SagaInstance extends BaseEntity{
     @Column(name = "current_step")
     private String currentStep;
 
+    @Version
+    @Column(name = "version")
+    private Integer version;
+
+    @Column(name = "retry_count", nullable = false)
+    @Builder.Default
+    private Integer retryCount = 0;
+
     public void markAsCompleted(){
         this.status=SagaStatus.COMPLETED;
     }

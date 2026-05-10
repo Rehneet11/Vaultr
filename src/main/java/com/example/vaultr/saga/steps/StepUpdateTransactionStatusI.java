@@ -6,8 +6,10 @@ import com.example.vaultr.enums.TransactionStatus;
 import com.example.vaultr.repositories.TransactionRepository;
 import com.example.vaultr.saga.SAGAContext;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class StepUpdateTransactionStatusI implements ISagaStep {
     private final TransactionRepository transactionRepository;
@@ -19,6 +21,7 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
     @Override
     @Transactional
     public boolean execute(SAGAContext context) throws Exception {
+        long start = System.currentTimeMillis();
         String transactionId = context.getString("transactionId");
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Transaction not found with ID: " + transactionId));
@@ -37,13 +40,14 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
 
         transactionRepository.save(transaction);
         context.addContext("TransactionStatusAfterTransactionUpdation", transaction.getStatus());
-
+        log.info("Execute Update Status step took {} ms", System.currentTimeMillis() - start);
         return true;
 
     }
 
     @Override
     public boolean compensate(SAGAContext context) throws Exception {
+        long start = System.currentTimeMillis();
         String transactionId = context.getString("transactionId");
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Transaction not found with ID: " + transactionId));
@@ -53,7 +57,7 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
 
         transactionRepository.save(transaction);
         context.addContext("TransactionStatusAfterTransactionCompensation", transaction.getStatus());
-
+        log.info("Compensate Execute Status step took {} ms", System.currentTimeMillis() - start);
         return true;
     }
 
