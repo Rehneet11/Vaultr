@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferResponseDTO {
-    private Long sagaInstanceId;
+    private String sagaInstanceId;
 }

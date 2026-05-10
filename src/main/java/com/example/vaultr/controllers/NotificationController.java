@@ -19,7 +19,7 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<Page<Notification>> getUserNotifications(
-            @RequestHeader(value = "X-User-Id", required = true) Long userId,
+            @RequestHeader(value = "X-User-Id", required = true) String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 

@@ -18,12 +18,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "outbox_event")
 public class OutboxEvent extends BaseEntity{
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
+
     @Enumerated(EnumType.STRING)
     @Column(name="transaction_type",nullable = false)
     private TransactionType transactionType;
 
     @Column(name="transaction_id",nullable = false)
-    private Long transactionId;
+    private String transactionId;
 
     @Column(name = "event_type",nullable = false)
     private String eventType;

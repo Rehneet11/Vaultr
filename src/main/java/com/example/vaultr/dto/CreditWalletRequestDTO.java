@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CreditWalletRequestDTO {
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than zero")

@@ -17,12 +17,22 @@ public class UserController {
     }
 
     @PostMapping("/create-user")
-    public CreateUserResponseDTO createUser(@Valid @RequestBody CreateUserRequestDTO userRequestDTO){
+    public CreateUserResponseDTO createUser(@Valid @RequestBody CreateUserRequestDTO userRequestDTO) throws Exception {
         return userService.createUser(userRequestDTO);
     }
 
     @GetMapping("/{id}")
-    public UserResponseDTO getUserById(@PathVariable Long id) throws Exception{
+    public UserResponseDTO getUserById(@PathVariable String id) throws Exception{
         return userService.getUserById(id);
+    }
+
+    @GetMapping("/name/{name}")
+    public UserResponseDTO getUserByName(@PathVariable String name) throws Exception {
+        return userService.getUserByName(name);
+    }
+
+    @GetMapping("/email/{email}")
+    public UserResponseDTO getUserByEmail(@PathVariable String email) throws Exception {
+        return userService.getUserByEmail(email);
     }
 }

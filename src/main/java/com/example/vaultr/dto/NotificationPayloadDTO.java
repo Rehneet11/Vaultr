@@ -8,8 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationPayloadDTO {
-    public Long userId;
-    public Long transactionId;
+    public String userId;
+    public String transactionId;
     public String eventType;
     public String message;
 }

@@ -39,3 +39,7 @@ out/
 # Environment Variables
 .env
 
+certs/
+*.pem
+*.key
+*.cert

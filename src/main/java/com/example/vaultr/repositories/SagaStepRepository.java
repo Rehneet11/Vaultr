@@ -13,16 +13,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SagaStepRepository extends JpaRepository<SagaStep,Long> {
-    List<SagaStep> findBySagaInstanceId(Long sagaInstanceId);
+public interface SagaStepRepository extends JpaRepository<SagaStep,String> {
+    List<SagaStep> findBySagaInstanceId(String sagaInstanceId);
 
     @Query("SELECT s from SagaStep s where s.sagaInstanceId = :sagaInstanceId AND s.status = :status")
-    List<SagaStep> findStepsBySagaInstanceIdAndStatus(@Param("sagaInstanceId") Long sagaInstanceId, @Param("status") StepStatus status);
+    List<SagaStep> findStepsBySagaInstanceIdAndStatus(@Param("sagaInstanceId") String sagaInstanceId, @Param("status") StepStatus status);
 
     @Query("SELECT s from SagaStep s where s.sagaInstanceId = :sagaInstanceId AND s.status IN ('COMPLETED', 'COMPENSATED')")
-    List<SagaStep> findCompletedOrCompensatedStepsBySagaInstanceId(@Param("sagaInstanceId") Long sagaInstanceId);
+    List<SagaStep> findCompletedOrCompensatedStepsBySagaInstanceId(@Param("sagaInstanceId") String sagaInstanceId);
 
     @Query("SELECT s from SagaStep s where s.stepName = :stepName AND s.sagaInstanceId = :sagaInstanceId AND s.status = :status")
-    Optional<SagaStep> findByStepNameAndSagaInstanceIdAndStatus(@Param("stepName") String stepName, @Param("sagaInstanceId") Long sagaInstanceId, @Param("status") StepStatus status);
+    Optional<SagaStep> findByStepNameAndSagaInstanceIdAndStatus(@Param("stepName") String stepName, @Param("sagaInstanceId") String sagaInstanceId, @Param("status") StepStatus status);
 
 }

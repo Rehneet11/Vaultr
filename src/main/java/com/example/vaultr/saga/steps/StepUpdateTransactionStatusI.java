@@ -19,7 +19,7 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
     @Override
     @Transactional
     public boolean execute(SAGAContext context) throws Exception {
-        Long transactionId = context.getLong("transactionId");
+        String transactionId = context.getString("transactionId");
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Transaction not found with ID: " + transactionId));
 
@@ -44,7 +44,7 @@ public class StepUpdateTransactionStatusI implements ISagaStep {
 
     @Override
     public boolean compensate(SAGAContext context) throws Exception {
-        Long transactionId = context.getLong("transactionId");
+        String transactionId = context.getString("transactionId");
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Transaction not found with ID: " + transactionId));
 

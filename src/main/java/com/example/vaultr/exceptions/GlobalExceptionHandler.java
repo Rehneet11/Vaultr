@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,6 +20,13 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Concurrent Request Detected");
         problemDetail.setType(URI.create("https://localhost:8080/api/transactions"));
         problemDetail.setProperty("retryAfterSeconds", 5);
+        return problemDetail;
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ProblemDetail handleRateLimitExceeded(RequestNotPermitted ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, "Too many requests. Please try again later.");
+        problemDetail.setTitle("Rate Limit Exceeded");
         return problemDetail;
     }
 

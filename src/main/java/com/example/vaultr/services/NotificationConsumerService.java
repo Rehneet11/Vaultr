@@ -3,6 +3,7 @@ package com.example.vaultr.services;
 import com.example.vaultr.dto.NotificationPayloadDTO;
 import com.example.vaultr.entities.Notification;
 import com.example.vaultr.repositories.NotificationRepository;
+import com.example.vaultr.utils.IdGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class NotificationConsumerService {
             NotificationPayloadDTO payload = objectMapper.readValue(payloadString, NotificationPayloadDTO.class);
 
             Notification notification = Notification.builder()
+                    .id(IdGenerator.generateId())
                     .userId(payload.getUserId())
                     .transactionId(payload.getTransactionId())
                     .eventType(payload.getEventType())

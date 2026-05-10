@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CreateWalletRequestDTO {
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private String userId;
 }

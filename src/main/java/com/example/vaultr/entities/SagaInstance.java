@@ -16,6 +16,10 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @Table(name = "saga_instance")
 public class SagaInstance extends BaseEntity{
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "varchar(50)")
     @Builder.Default

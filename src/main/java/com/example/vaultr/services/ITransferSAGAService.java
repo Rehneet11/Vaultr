@@ -6,6 +6,6 @@ import com.example.vaultr.entities.Transaction;
 import java.math.BigDecimal;
 
 public interface ITransferSAGAService {
-    Long initiateTransfer(TransferRequestDTO requestDTO) throws Exception;
-    void executeTransfer(Long sagaInstanceId) throws Exception;
+    String initiateTransfer(TransferRequestDTO requestDTO) throws Exception;
+    void executeTransfer(String sagaInstanceId) throws Exception;
 }

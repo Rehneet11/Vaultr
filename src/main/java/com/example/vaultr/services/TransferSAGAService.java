@@ -12,7 +12,10 @@ import com.example.vaultr.repositories.OutboxEventRepository;
 import com.example.vaultr.saga.ISagaOrchestrator;
 import com.example.vaultr.saga.SAGAContext;
 import com.example.vaultr.saga.steps.SagaStepFactory;
+import com.example.vaultr.utils.IdGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,17 +24,17 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-
 @Service
 @Slf4j
-public class TransferSAGAService implements ITransferSAGAService{
+public class TransferSAGAService implements ITransferSAGAService {
 
     private final ISagaOrchestrator sagaOrchestrator;
     private final ITransactionService transactionService;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
 
-    public TransferSAGAService(ISagaOrchestrator sagaOrchestrator, ITransactionService transactionService, OutboxEventRepository outboxEventRepository, ObjectMapper objectMapper) {
+    public TransferSAGAService(ISagaOrchestrator sagaOrchestrator, ITransactionService transactionService,
+            OutboxEventRepository outboxEventRepository, ObjectMapper objectMapper) {
         this.sagaOrchestrator = sagaOrchestrator;
         this.transactionService = transactionService;
         this.outboxEventRepository = outboxEventRepository;
@@ -39,42 +42,44 @@ public class TransferSAGAService implements ITransferSAGAService{
     }
 
     @Override
-    public Long initiateTransfer(TransferRequestDTO requestDTO) throws Exception {
-        Long sourceWalletId = requestDTO.getSourceWalletId();
-        Long destinationWalletId= requestDTO.getDestinationWalletId();
-        BigDecimal amount  = requestDTO.getAmount();
-        Transaction transaction = transactionService.createTransaction(sourceWalletId,destinationWalletId,amount);
-        log.info("Initiating Transfer with Id {}",transaction.getId());
+    @Transactional
+    @CircuitBreaker(name = "databaseExecution", fallbackMethod = "fallbackSaga")
+    @Retry(name = "databaseRetry")
+    public String initiateTransfer(TransferRequestDTO requestDTO) throws Exception {
+        String sourceWalletId = requestDTO.getSourceWalletId();
+        String destinationWalletId = requestDTO.getDestinationWalletId();
+        BigDecimal amount = requestDTO.getAmount();
+        Transaction transaction = transactionService.createTransaction(sourceWalletId, destinationWalletId, amount);
+        log.info("Initiating Transfer with Id {}", transaction.getId());
 
         SAGAContext context = SAGAContext.builder()
                 .context(Map.ofEntries(
-                        Map.entry("transactionId",transaction.getId()),
-                        Map.entry("sourceWalletId",sourceWalletId),
-                        Map.entry("destinationWalletId",destinationWalletId),
-                        Map.entry("amount",amount)
-                ))
+                        Map.entry("transactionId", transaction.getId()),
+                        Map.entry("sourceWalletId", sourceWalletId),
+                        Map.entry("destinationWalletId", destinationWalletId),
+                        Map.entry("amount", amount)))
                 .build();
 
-        Long sagaInstanceId = sagaOrchestrator.startSaga(context);
-        log.info("Saga Instance created with id {}",sagaInstanceId);
+        String sagaInstanceId = sagaOrchestrator.startSaga(context);
+        log.info("Saga Instance created with id {}", sagaInstanceId);
 
-        transactionService.updateTransactionWithSagaInstanceId(transaction.getId(),sagaInstanceId);
+        transactionService.updateTransactionWithSagaInstanceId(transaction.getId(), sagaInstanceId);
         executeTransfer(sagaInstanceId);
         return sagaInstanceId;
     }
 
     @Override
     @Transactional
-    public void executeTransfer(Long sagaInstanceId) throws Exception {
+    public void executeTransfer(String sagaInstanceId) throws Exception {
         log.info("Executing SAGA with id {} ", sagaInstanceId);
-
-        try{
+        System.out.println("Testing Retry for Resilience4j");
+        try {
             List<SagaStepType> TransferMoneySteps = SagaStepFactory.steps;
-            for (SagaStepType step : TransferMoneySteps){
-                boolean success = sagaOrchestrator.executeStep(sagaInstanceId,step.toString());
-                if (!success){
+            for (SagaStepType step : TransferMoneySteps) {
+                boolean success = sagaOrchestrator.executeStep(sagaInstanceId, step.toString());
+                if (!success) {
                     sagaOrchestrator.markSagaFailed(sagaInstanceId);
-                    transactionService.updateTransactionStatus(sagaInstanceId,TransactionStatus.FAILED);
+                    transactionService.updateTransactionStatus(sagaInstanceId, TransactionStatus.FAILED);
                     log.error(" Step Failed {} ", step.toString());
                     return;
                 }
@@ -94,6 +99,7 @@ public class TransferSAGAService implements ITransferSAGAService{
             String jsonPayloadReceiving = objectMapper.writeValueAsString(payloadReceiving);
 
             OutboxEvent outboxEventReceived = OutboxEvent.builder()
+                    .id(IdGenerator.generateId())
                     .transactionType(TransactionType.TRANSFER)
                     .transactionId(transaction.getId())
                     .eventType("TRANSFER_RECEIVED")
@@ -113,6 +119,7 @@ public class TransferSAGAService implements ITransferSAGAService{
             String jsonPayloadSending = objectMapper.writeValueAsString(payloadSending);
 
             OutboxEvent outboxEventSent = OutboxEvent.builder()
+                    .id(IdGenerator.generateId())
                     .transactionType(TransactionType.TRANSFER)
                     .transactionId(transaction.getId())
                     .eventType("TRANSFER_SENT")
@@ -122,11 +129,15 @@ public class TransferSAGAService implements ITransferSAGAService{
 
             outboxEventRepository.save(outboxEventSent);
             log.info("Outbox event saved successfully for Transaction {}", transaction.getId());
-        }
-        catch (Exception e){
-            log.error("Saga Failed with Id {} , with error {}", sagaInstanceId,e.getMessage());
+        } catch (Exception e) {
+            log.error("Saga Failed with Id {} , with error {}", sagaInstanceId, e.getMessage());
             sagaOrchestrator.markSagaFailed(sagaInstanceId);
             throw new RuntimeException("Failed to finalize SAGA and save outbox event", e);
         }
+    }
+
+    public void fallbackSaga(String sagaInstanceId, Throwable throwable) {
+        System.err.println("SAGA FAILED AFTER RETRIES OR CIRCUIT OPEN: " + throwable.getMessage());
+        throw new RuntimeException("Service currently degraded. Please try again later.");
     }
 }

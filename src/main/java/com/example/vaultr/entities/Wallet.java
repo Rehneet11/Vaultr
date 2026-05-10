@@ -13,9 +13,12 @@ import java.math.BigDecimal;
 @Getter
 @Table(name = "Wallet")
 public class Wallet extends BaseEntity{
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
 
     @Column(name = "user_id", nullable = false,updatable = false)
-    private Long userId;
+    private String userId;
 
     @Column(name = "balance",nullable = false)
     @Builder.Default

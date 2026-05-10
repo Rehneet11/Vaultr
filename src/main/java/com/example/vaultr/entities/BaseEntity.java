@@ -1,6 +1,7 @@
 package com.example.vaultr.entities;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,9 +15,6 @@ import java.time.LocalDateTime;
 @Data
 @MappedSuperclass
 public class BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
 
     @CreationTimestamp
     public LocalDateTime createdAt;

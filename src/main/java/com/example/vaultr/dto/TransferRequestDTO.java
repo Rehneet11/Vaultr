@@ -13,10 +13,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TransferRequestDTO {
     @NotNull(message = "Source wallet ID is required")
-    private Long sourceWalletId;
+    private String sourceWalletId;
 
     @NotNull(message = "Destination wallet ID is required")
-    private Long destinationWalletId;
+    private String destinationWalletId;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than zero")

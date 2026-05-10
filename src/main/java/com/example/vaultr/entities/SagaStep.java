@@ -14,8 +14,12 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 public class SagaStep extends BaseEntity{
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
+
     @Column(name = "saga_instance_id",nullable = false)
-    private Long sagaInstanceId;
+    private String sagaInstanceId;
 
     @Column(name = "step_name",nullable = false)
     private String stepName;

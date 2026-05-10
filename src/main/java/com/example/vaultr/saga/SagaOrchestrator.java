@@ -11,6 +11,7 @@ import com.example.vaultr.saga.steps.ISagaStep;
 import com.example.vaultr.saga.steps.SagaStepFactory;
 import com.example.vaultr.exceptions.ResourceNotFoundException;
 import com.example.vaultr.exceptions.SagaExecutionException;
+import com.example.vaultr.utils.IdGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +37,12 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
     @Override
     @Transactional
-    public Long startSaga(SAGAContext context) {
+    public String startSaga(SAGAContext context) {
         try {
             String contextJSON = objectMapper.writeValueAsString(context);
 
             SagaInstance sagaInstance = SagaInstance.builder()
+                    .id(IdGenerator.generateId())
                     .context(contextJSON)
                     .status(SagaStatus.STARTED)
                     .build();
@@ -57,7 +59,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
     @Override
     @Transactional
-    public void markSagaComplete(Long sagaInstanceId) {
+    public void markSagaComplete(String sagaInstanceId) {
         SagaInstance sagaInstance = sagaInstanceRepository.findById(sagaInstanceId)
                 .orElseThrow(()-> new ResourceNotFoundException("Saga Instance not found with ID: " + sagaInstanceId));
         sagaInstance.markAsCompleted();
@@ -67,7 +69,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
     @Override
     @Transactional
-    public void markSagaFailed(Long sagaInstanceId) throws Exception {
+    public void markSagaFailed(String sagaInstanceId) throws Exception {
         SagaInstance sagaInstance = sagaInstanceRepository.findById(sagaInstanceId)
                 .orElseThrow(()-> new ResourceNotFoundException("Saga Instance not found with ID: " + sagaInstanceId));
         sagaInstance.markAsFailed();
@@ -76,13 +78,13 @@ public class SagaOrchestrator implements ISagaOrchestrator{
     }
 
     @Override
-    public SagaInstance getSagaInstance(Long sagaInstanceId) {
+    public SagaInstance getSagaInstance(String sagaInstanceId) {
         return sagaInstanceRepository.findById(sagaInstanceId).orElseThrow(()-> new ResourceNotFoundException("Saga Instance not found with ID: " + sagaInstanceId));
     }
 
     @Override
     @Transactional
-    public boolean executeStep(Long sagaInstanceId, String stepName) throws Exception {
+    public boolean executeStep(String sagaInstanceId, String stepName) throws Exception {
         SagaInstance sagaInstance = sagaInstanceRepository.findById(sagaInstanceId)
                 .orElseThrow(()-> new ResourceNotFoundException("Saga Instance not found with ID: " + sagaInstanceId));
 
@@ -91,6 +93,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
         SagaStep sagaStepEntity = sagaStepRepository.findByStepNameAndSagaInstanceIdAndStatus(stepName,sagaInstanceId,StepStatus.PENDING)
                 .orElse(SagaStep.builder()
+                        .id(IdGenerator.generateId())
                         .stepName(stepName)
                         .sagaInstanceId(sagaInstanceId)
                         .status(StepStatus.PENDING)
@@ -108,7 +111,6 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
             boolean result = step.execute(sagaContext);
 
-            // Persist the mutated context back to the saga instance after every step
             String updatedContextJson = objectMapper.writeValueAsString(sagaContext);
             sagaInstance.setContext(updatedContextJson);
 
@@ -139,7 +141,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
     @Override
     @Transactional
-    public boolean compensateStep(Long sagaInstanceId, String stepName) throws Exception{
+    public boolean compensateStep(String sagaInstanceId, String stepName) throws Exception{
         SagaInstance sagaInstance = sagaInstanceRepository.findById(sagaInstanceId)
                 .orElseThrow(()-> new ResourceNotFoundException("Saga Instance not found with ID: " + sagaInstanceId));
 
@@ -191,7 +193,7 @@ public class SagaOrchestrator implements ISagaOrchestrator{
 
     @Override
     @Transactional
-    public void compensateSaga(Long sagaInstanceId) throws Exception {
+    public void compensateSaga(String sagaInstanceId) throws Exception {
         SagaInstance sagaInstance = sagaInstanceRepository.findById(sagaInstanceId)
                 .orElseThrow(()-> new ResourceNotFoundException("Saga Instance not found with ID: " + sagaInstanceId));
 

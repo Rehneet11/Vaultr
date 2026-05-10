@@ -31,13 +31,6 @@ public class SAGAContext {
         return context.get(key);
     }
 
-    public Long getLong(String key){
-        Object val= getContext(key);
-        if(val instanceof Number){
-            return ((Number) val).longValue();
-        }
-        return null;
-    }
 
     public BigDecimal getBigDecimal(String key){
         Object val = getContext(key);

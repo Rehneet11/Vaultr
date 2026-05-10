@@ -10,14 +10,15 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction,Long> {
-    List<Transaction> findBySourceWalletId(Long sourceWalletId);
-    List<Transaction> findByDestinationWalletId(Long destinationWalletId);
+public interface TransactionRepository extends JpaRepository<Transaction, String> {
+    List<Transaction> findBySourceWalletId(String sourceWalletId);
+
+    List<Transaction> findByDestinationWalletId(String destinationWalletId);
 
     @Query("Select t From Transaction t where t.sourceWalletId = :walletId OR t.destinationWalletId = :walletId")
-    List<Transaction> findByWalletId(@Param("walletId") Long walletId);
+    List<Transaction> findByWalletId(@Param("walletId") String walletId);
 
     List<Transaction> findByStatus(TransactionStatus status);
 
-    Transaction findBySagaInstanceId(Long sagaInstanceId);
+    Transaction findBySagaInstanceId(String sagaInstanceId);
 }

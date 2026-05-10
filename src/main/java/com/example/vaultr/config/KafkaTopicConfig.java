@@ -11,7 +11,7 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic walletNotificationsTopic() {
         return TopicBuilder.name("wallet-notifications")
-                .partitions(3)
+                .partitions(2)
                 .replicas(1)
                 .build();
     }

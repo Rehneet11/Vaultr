@@ -10,6 +10,10 @@ import lombok.*;
 @Builder
 @Getter
 public class User extends BaseEntity {
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
+
     private String name;
 
     private String email;

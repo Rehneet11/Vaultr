@@ -14,12 +14,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Notification extends BaseEntity {
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(name = "transaction_id", nullable = false)
-    private Long transactionId;
+    private String transactionId;
 
     @Column(name = "event_type", nullable = false)
     private String eventType;

@@ -21,18 +21,19 @@ public class StepCreditDestinationWalletI implements ISagaStep {
     @Override
     @Transactional
     public boolean execute(SAGAContext context) throws Exception {
-        Long destinationWalletId = context.getLong("destinationWalletId");
+        String destinationWalletId = context.getString("destinationWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
 
         Wallet wallet = walletRepository.findByUserIdWithLock(destinationWalletId)
-                .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Wallet not found for user ID: " + destinationWalletId));
+                .orElseThrow(() -> new com.example.vaultr.exceptions.ResourceNotFoundException(
+                        "Wallet not found for user ID: " + destinationWalletId));
 
-        context.addContext("DestinationWalletBalanceBeforeCredit",wallet.getBalance());
+        context.addContext("DestinationWalletBalanceBeforeCredit", wallet.getBalance());
 
         wallet.creditAmount(amount);
         walletRepository.save(wallet);
 
-        context.addContext("DestinationWalletBalanceAfterCredit",wallet.getBalance());
+        context.addContext("DestinationWalletBalanceAfterCredit", wallet.getBalance());
         context.addContext("TransactionStatusAfterCreditSuccess", TransactionStatus.COMPLETED);
 
         return true;
@@ -41,16 +42,17 @@ public class StepCreditDestinationWalletI implements ISagaStep {
     @Override
     @Transactional
     public boolean compensate(SAGAContext context) throws Exception {
-        Long destinationWalletId = context.getLong("destinationWalletId");
+        String destinationWalletId = context.getString("destinationWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
 
         Wallet wallet = walletRepository.findByUserIdWithLock(destinationWalletId)
-                .orElseThrow(()-> new com.example.vaultr.exceptions.ResourceNotFoundException("Wallet not found for user ID: " + destinationWalletId));
+                .orElseThrow(() -> new com.example.vaultr.exceptions.ResourceNotFoundException(
+                        "Wallet not found for user ID: " + destinationWalletId));
 
         wallet.debitAmount(amount);
         walletRepository.save(wallet);
 
-        context.addContext("DestinationWalletBalanceAfterCreditCompensation",wallet.getBalance());
+        context.addContext("DestinationWalletBalanceAfterCreditCompensation", wallet.getBalance());
         context.addContext("TransactionStatusAfterCreditCompensated", TransactionStatus.FAILED);
 
         return true;

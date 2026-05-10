@@ -1,14 +1,13 @@
 package com.example.vaultr.saga;
 
 import com.example.vaultr.entities.SagaInstance;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 public interface ISagaOrchestrator {
-    Long startSaga(SAGAContext context);
-    void markSagaComplete(Long sagaInstanceId) throws Exception;
-    void markSagaFailed(Long sagaInstanceId) throws Exception;
-    SagaInstance getSagaInstance(Long sagaInstanceId) throws Exception;
-    boolean executeStep(Long sagaInstanceId, String stepName) throws Exception;
-    boolean compensateStep(Long sagaInstanceId, String stepName) throws Exception;
-    void compensateSaga(Long sagaInstanceId) throws Exception;
+    String startSaga(SAGAContext context);
+    void markSagaComplete(String sagaInstanceId) throws Exception;
+    void markSagaFailed(String sagaInstanceId) throws Exception;
+    SagaInstance getSagaInstance(String sagaInstanceId) throws Exception;
+    boolean executeStep(String sagaInstanceId, String stepName) throws Exception;
+    boolean compensateStep(String sagaInstanceId, String stepName) throws Exception;
+    void compensateSaga(String sagaInstanceId) throws Exception;
 }

@@ -11,12 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("api/wallets")
 @Slf4j
+@RateLimiter(name = "api")
 public class WalletController {
     private final IWalletService walletService;
 
@@ -24,26 +26,21 @@ public class WalletController {
         this.walletService = walletService;
     }
 
-    @PostMapping("/create_wallet")
-    public ResponseEntity<Wallet> createWallet(@Valid @RequestBody CreateWalletRequestDTO requestDTO) throws Exception {
-        Wallet createdWallet = walletService.createWallet(requestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdWallet);
-    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Wallet> getWalletById(@PathVariable Long id) throws Exception {
+    public ResponseEntity<Wallet> getWalletById(@PathVariable String id) throws Exception {
         Wallet wallet = walletService.getWalletById(id);
         return ResponseEntity.ok(wallet);
     }
 
     @GetMapping("/balance/{id}")
-    public ResponseEntity<BigDecimal> getWalletBalanceById(@PathVariable Long id) throws Exception {
+    public ResponseEntity<BigDecimal> getWalletBalanceById(@PathVariable String id) throws Exception {
         BigDecimal balance= walletService.getWalletBalance(id);
         return ResponseEntity.ok(balance);
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<Wallet> getWalletByUserId(@PathVariable Long id) throws Exception{
+    public ResponseEntity<Wallet> getWalletByUserId(@PathVariable String id) throws Exception{
         Wallet wallet = walletService.getWalletByUserId(id);
         return ResponseEntity.ok(wallet);
     }

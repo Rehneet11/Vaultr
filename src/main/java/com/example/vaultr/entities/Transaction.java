@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+
 @Entity
 @Table(name = "transaction")
 @NoArgsConstructor
@@ -13,26 +14,30 @@ import java.math.BigDecimal;
 @Builder
 @Getter
 @Setter
-public class Transaction extends BaseEntity{
-    @Column(name = "source_wallet_id",nullable = false)
-    private Long sourceWalletId;
+public class Transaction extends BaseEntity {
+    @Id
+    @Column(length = 26, nullable = false, updatable = false)
+    public String id;
 
-    @Column(name = "destination_wallet_id",nullable = false)
-    private Long destinationWalletId;
+    @Column(name = "source_wallet_id", nullable = false)
+    private String sourceWalletId;
 
-    @Column(name = "amount",nullable = false)
+    @Column(name = "destination_wallet_id", nullable = false)
+    private String destinationWalletId;
+
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
     @Column(name = "saga_instance_id")
-    private Long sagaInstanceId;
+    private String sagaInstanceId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="status", nullable = false)
+    @Column(name = "status", nullable = false)
     @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    @Column(name="transaction_type",nullable = false)
-    private TransactionType transactionType=TransactionType.TRANSFER;
+    @Column(name = "transaction_type", nullable = false)
+    private TransactionType transactionType = TransactionType.TRANSFER;
 }
