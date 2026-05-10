@@ -273,3 +273,16 @@ outbox event write, and Kafka publish.
 
 ### Zipkin — 35+ spans per SAGA transaction
 ![Zipkin](docs/ZIPKIN.png)
+
+
+## A Note on Scope
+
+Vaultr is focused on distributed systems correctness —
+not authentication or authorization.
+
+JWT auth, wallet ownership validation, and API security
+are intentionally out of scope for this version.
+All APIs assume a trusted client for demonstration purposes.
+
+The interesting engineering is in what happens after the
+request is accepted — not at the gate.
