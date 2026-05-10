@@ -54,6 +54,69 @@ Source wallet refunded. Transaction marked FAILED. No money lost.*
 
 ![Fail SAGA](docs/VAULTR_FAIL_SAGA.png)
 
+## Database Overview
+
+Vaultr's schema is designed around the SAGA pattern — every 
+entity exists to support either the transfer lifecycle, 
+the compensation path, or the event pipeline.
+
+A few deliberate decisions worth noting:
+
+- **Wallet ID = User ID** — eliminates a join on every balance read
+- **SAGA state is fully persistent** — every step transition is 
+  recorded, making failures debuggable and compensations auditable
+- **Outbox table is part of the core schema** — not an afterthought
+
+```mermaid
+erDiagram
+    Wallet {
+        String id PK "Same as user_id"
+        String user_id UK
+        Decimal balance
+        Boolean is_active
+    }
+    Transaction {
+        String id PK
+        String source_wallet_id FK
+        String destination_wallet_id FK
+        Decimal amount
+        String status
+        String saga_instance_id FK
+        DateTime createdAt
+    }
+    Saga_Instance {
+        String id PK
+        String current_step
+        String status
+        JSON context
+    }
+    Saga_Step {
+        String id PK
+        String saga_instance_id FK
+        String step_name
+        String status
+        JSON step_data
+    }
+    Outbox_Event {
+        String id PK
+        String transaction_id FK
+        JSON payload
+        String status
+    }
+    Notification {
+        String id PK
+        String user_id FK
+        String message
+    }
+
+    Wallet ||--o{ Transaction : "is source of"
+    Wallet ||--o{ Transaction : "is destination of"
+    Wallet ||--o{ Notification : "receives"
+    Saga_Instance ||--|| Transaction : "orchestrates"
+    Saga_Instance ||--o{ Saga_Step : "contains"
+    Transaction ||--o{ Outbox_Event : "generates"
+```
+
 ## Design Decisions
 
 ### Why SAGA over 2PC?
