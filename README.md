@@ -3,15 +3,19 @@
 A distributed P2P payment wallet engineered for correctness 
 under failure — not just the happy path.
 
+**250 TPS · sub-60ms p99 · 35+ trace spans per transaction**
+
 ## The Inspiration
 
-At 12:00 PM, I received my monthly stipend slip via email. At 4:00 PM, my banking app finally showed the updated balance. At 6:00 PM, I received the "Account Credited" SMS.
+At 12:00 PM, I received my monthly stipend slip.
+At 6:00 PM, I received the "Account Credited" SMS.
 
-That 6-hour delay made me ask a fundamental question: How do banks actually move money without losing it?
+That 6-hour gap made me ask — how do banks actually move
+money without losing it?
 
-I realized that under the hood, modern finance isn't a single, instant database transaction. It relies on eventual consistency, message brokers, and SAGA patterns to guarantee money is never duplicated or destroyed. I built Vaultr to reverse-engineer and implement that exact enterprise-grade reliability from scratch.
+**Vaultr** is my attempt to answer that.
 
-**250 TPS · sub-60ms p99 · 35+ trace spans per transaction**
+This is what it took.
 ## The Problem
 
 Moving money across distributed systems is easy.
@@ -174,6 +178,19 @@ failure tracing and compensation logic difficult to reason about.
 Orchestration centralizes control in a single `SagaOrchestrator` 
 — every step, every compensation, every state transition is 
 explicit and auditable.
+
+### Why ULID over Auto-Increment or UUID for Sharded IDs?
+
+Auto-increment requires a centralized sequence generator —
+a single point of failure in a sharded architecture.
+
+UUID is unique but random — poor index locality, causes
+B-tree fragmentation at scale.
+
+ULID is lexicographically sortable, globally unique, and
+timestamp-prefixed — combining the distribution safety of
+UUID with the index-friendliness of sequential IDs.
+No coordination required across shards.
 
 ## Core Features
 
