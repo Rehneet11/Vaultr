@@ -3,6 +3,13 @@
 A distributed P2P payment wallet engineered for correctness 
 under failure — not just the happy path.
 
+**The Inspiration**
+At 12:00 PM, I received my monthly stipend slip via email. At 4:00 PM, my banking app finally showed the updated balance. At 6:00 PM, I received the "Account Credited" SMS.
+
+That 6-hour delay made me ask a fundamental question: How do banks actually move money without losing it?
+
+I realized that under the hood, modern finance isn't a single, instant database transaction. It relies on eventual consistency, message brokers, and SAGA patterns to guarantee money is never duplicated or destroyed. I built Vaultr to reverse-engineer and implement that exact enterprise-grade reliability from scratch.
+
 **250 TPS · sub-60ms p99 · 35+ trace spans per transaction**
 ## The Problem
 
