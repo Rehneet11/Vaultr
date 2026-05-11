@@ -39,6 +39,8 @@ out/
 # Environment Variables
 .env
 
+src/main/resources/sharding.yml
+
 certs/
 *.pem
 *.key

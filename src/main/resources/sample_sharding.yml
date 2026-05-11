@@ -1,0 +1,78 @@
+dataSources:
+  shard_0:
+    jdbcUrl:
+    username:
+    password:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+  shard_1:
+    jdbcUrl:
+    username:
+    password:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+
+rules:
+  - !SHARDING
+
+    tables:
+
+      user:
+        actualDataNodes: shard_${0..1}.user
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+
+      wallet:
+        actualDataNodes: shard_${0..1}.wallet
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+
+      transaction:
+        actualDataNodes: shard_${0..1}.transaction
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+
+      outbox_event:
+        actualDataNodes: shard_${0..1}.outbox_event
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+
+      notifications:
+        actualDataNodes: shard_${0..1}.notifications
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: db-inline-notifications
+
+      saga_instance:
+        actualDataNodes: shard_${0..1}.saga_instance
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+
+      saga_step:
+        actualDataNodes: shard_${0..1}.saga_step
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+
+    shardingAlgorithms:
+
+      db-inline:
+        type: INLINE
+        props:
+          algorithm-expression: shard_${Math.abs(id.hashCode()) % 2}
+      db-inline-notifications:
+        type: INLINE
+        props:
+          algorithm-expression: shard_${Math.abs(user_id.hashCode()) % 2}
