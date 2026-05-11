@@ -1,0 +1,73 @@
+dataSources:
+  shard_0:
+    jdbcUrl: ${DB_SHARD_0_URL}
+    username: ${DB_SHARD_0_USERNAME}
+    password: ${DB_SHARD_0_PASSWORD}
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+
+  shard_1:
+    jdbcUrl: ${DB_SHARD_1_URL}
+    username: ${DB_SHARD_1_USERNAME}
+    password: ${DB_SHARD_1_PASSWORD}
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+
+rules:
+  - !SHARDING
+    defaultDatabaseStrategy:
+      standard:
+        shardingColumn: id
+        shardingAlgorithmName: db-inline
+    tables:
+      user:
+        actualDataNodes: shard_0.user, shard_1.user
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+      wallet:
+        actualDataNodes: shard_0.wallet, shard_1.wallet
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: db-inline-wallet
+      transaction:
+        actualDataNodes: shard_0.transaction, shard_1.transaction
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+      notifications:
+        actualDataNodes: shard_0.notifications, shard_1.notifications
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+      outbox_event:
+        actualDataNodes: shard_0.outbox_event, shard_1.outbox_event
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+      saga_instance:
+        actualDataNodes: shard_0.saga_instance, shard_1.saga_instance
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+      saga_step:
+        actualDataNodes: shard_0.saga_step, shard_1.saga_step
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
+    shardingAlgorithms:
+      db-inline:
+        type: INLINE
+        props:
+          algorithm-expression: shard_${Math.abs(id.hashCode()) % 2}
+      db-inline-wallet:
+        type: INLINE
+        props:
+          algorithm-expression: shard_${Math.abs(user_id.hashCode()) % 2}

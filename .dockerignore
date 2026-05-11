@@ -1,0 +1,15 @@
+.gradle
+build
+out
+.git
+.gitignore
+.env
+*.iml
+.idea
+.vscode
+docs
+docker-compose.yml
+prometheus.yml
+load-test.js
+README.md
+!docker

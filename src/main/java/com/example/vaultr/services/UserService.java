@@ -6,6 +6,8 @@ import com.example.vaultr.dto.CreateWalletRequestDTO;
 import com.example.vaultr.dto.UserResponseDTO;
 import com.example.vaultr.entities.User;
 import com.example.vaultr.entities.Wallet;
+import com.example.vaultr.exceptions.DuplicateResourceException;
+import com.example.vaultr.exceptions.ResourceNotFoundException;
 import com.example.vaultr.repositories.UserRepository;
 import com.example.vaultr.repositories.WalletRepository;
 import com.example.vaultr.utils.IdGenerator;
@@ -27,7 +29,7 @@ public class UserService implements IUserService{
     public CreateUserResponseDTO createUser(CreateUserRequestDTO userRequestDTO) throws Exception {
         User user0 = userRepository.findByEmail(userRequestDTO.getEmail());
         if( user0 != null){
-            throw new Exception("User Already Exists");
+            throw new DuplicateResourceException("User already exists with email: " + userRequestDTO.getEmail());
         }
         User user = User.builder()
                 .id(IdGenerator.generateId())
@@ -45,7 +47,8 @@ public class UserService implements IUserService{
 
     @Override
     public UserResponseDTO getUserById(String id) throws Exception {
-        User user =  userRepository.findById(id).orElseThrow(()-> new Exception ("User Not Found"));
+        User user =  userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -56,6 +59,9 @@ public class UserService implements IUserService{
     @Override
     public UserResponseDTO getUserByName(String name) throws Exception {
         User user =  userRepository.findByName(name);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with name: " + name);
+        }
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -66,6 +72,9 @@ public class UserService implements IUserService{
     @Override
     public UserResponseDTO getUserByEmail(String email) throws Exception {
         User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with email: " + email);
+        }
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())

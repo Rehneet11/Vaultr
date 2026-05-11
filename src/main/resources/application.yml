@@ -54,3 +54,13 @@ resilience4j.ratelimiter:
       limitForPeriod: 5
       limitRefreshPeriod: 1s
       timeoutDuration: 0s
+
+  springdoc:
+    api-docs:
+      path: /v3/api-docs
+    swagger-ui:
+      path: /swagger-ui.html
+      disable-swagger-default-url: true
+      operations-sorter: method
+    packages-to-scan: com.example.vaultr.controllers
+    paths-to-match: /api/**
