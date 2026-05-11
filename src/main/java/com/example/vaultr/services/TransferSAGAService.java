@@ -32,14 +32,14 @@ public class TransferSAGAService implements ITransferSAGAService {
     private final ISagaOrchestrator sagaOrchestrator;
     private final ITransactionService transactionService;
     private final OutboxEventRepository outboxEventRepository;
-    private final ObjectMapper objectMapper;
+    private final NotificationPublisherService notificationPublisherService;
 
     public TransferSAGAService(ISagaOrchestrator sagaOrchestrator, ITransactionService transactionService,
-            OutboxEventRepository outboxEventRepository, ObjectMapper objectMapper) {
+                               OutboxEventRepository outboxEventRepository, ObjectMapper objectMapper, NotificationPublisherService notificationPublisherService) {
         this.sagaOrchestrator = sagaOrchestrator;
         this.transactionService = transactionService;
         this.outboxEventRepository = outboxEventRepository;
-        this.objectMapper = objectMapper;
+        this.notificationPublisherService = notificationPublisherService;
     }
 
     @Override
@@ -51,6 +51,9 @@ public class TransferSAGAService implements ITransferSAGAService {
         String destinationWalletId = requestDTO.getDestinationWalletId();
         BigDecimal amount = requestDTO.getAmount();
         Transaction transaction = transactionService.createTransaction(sourceWalletId, destinationWalletId, amount);
+        if(transaction==null){
+            return TransferResponseDTO.builder().status("Sender and Receiver must be different").build();
+        }
         log.info("Initiating Transfer with Id {}", transaction.getId());
 
         SAGAContext context = SAGAContext.builder()
@@ -82,6 +85,7 @@ public class TransferSAGAService implements ITransferSAGAService {
         long start = System.currentTimeMillis();
         log.info("Executing SAGA with id {} ", sagaInstanceId);
         System.out.println("Testing Retry for Resilience4j");
+        Transaction transaction = transactionService.getTransactionsBySagaInstanceId(sagaInstanceId);
         try {
             List<SagaStepType> TransferMoneySteps = SagaStepFactory.steps;
             for (SagaStepType step : TransferMoneySteps) {
@@ -90,63 +94,28 @@ public class TransferSAGAService implements ITransferSAGAService {
                     sagaOrchestrator.markSagaFailed(sagaInstanceId);
                     transactionService.updateTransactionStatus(sagaInstanceId, TransactionStatus.FAILED);
                     log.error(" Step Failed {} ", step.toString());
+                    notificationPublisherService.addNotification(transaction.getId(),TransactionType.TRANSFER,transaction.getSourceWalletId(),transaction.getAmount(),"TRANSFER_FAILED","TRANSFER FAILED OF ₹");
                     return;
                 }
             }
             sagaOrchestrator.markSagaComplete(sagaInstanceId);
             log.info("Saga Completed with Id {} ", sagaInstanceId);
             transactionService.updateTransactionStatus(sagaInstanceId, TransactionStatus.COMPLETED);
-            Transaction transaction = transactionService.getTransactionsBySagaInstanceId(sagaInstanceId);
 
-            NotificationPayloadDTO payloadReceiving = NotificationPayloadDTO.builder()
-                    .userId(transaction.getDestinationWalletId())
-                    .transactionId(transaction.getId())
-                    .eventType("TRANSFER_RECEIVED")
-                    .message("You received a transfer of ₹" + transaction.getAmount())
-                    .build();
+            notificationPublisherService.addNotification(transaction.getId(),TransactionType.TRANSFER,transaction.getDestinationWalletId(),transaction.getAmount(),"TRANSFER_RECEIVED","You received a Transfer of ₹");
 
-            String jsonPayloadReceiving = objectMapper.writeValueAsString(payloadReceiving);
+            notificationPublisherService.addNotification(transaction.getId(),TransactionType.TRANSFER,transaction.getSourceWalletId(),transaction.getAmount(),"TRANSFER_SENT","You sent a Transfer of ₹");
 
-            OutboxEvent outboxEventReceived = OutboxEvent.builder()
-                    .id(IdGenerator.generateId())
-                    .transactionType(TransactionType.TRANSFER)
-                    .transactionId(transaction.getId())
-                    .eventType("TRANSFER_RECEIVED")
-                    .payload(jsonPayloadReceiving)
-                    .status(EventStatus.PENDING)
-                    .build();
-
-            outboxEventRepository.save(outboxEventReceived);
-
-            NotificationPayloadDTO payloadSending = NotificationPayloadDTO.builder()
-                    .userId(transaction.getSourceWalletId())
-                    .transactionId(transaction.getId())
-                    .eventType("TRANSFER_SENT")
-                    .message("You Sent a transfer of ₹" + transaction.getAmount())
-                    .build();
-
-            String jsonPayloadSending = objectMapper.writeValueAsString(payloadSending);
-
-            OutboxEvent outboxEventSent = OutboxEvent.builder()
-                    .id(IdGenerator.generateId())
-                    .transactionType(TransactionType.TRANSFER)
-                    .transactionId(transaction.getId())
-                    .eventType("TRANSFER_SENT")
-                    .payload(jsonPayloadSending)
-                    .status(EventStatus.PENDING)
-                    .build();
-            log.info("Execute Transaction step took {} ms", System.currentTimeMillis() - start);
-            outboxEventRepository.save(outboxEventSent);
-            log.info("Outbox event saved successfully for Transaction {}", transaction.getId());
         } catch (Exception e) {
             log.error("Saga Failed with Id {} , with error {}", sagaInstanceId, e.getMessage());
             sagaOrchestrator.markSagaFailed(sagaInstanceId);
+            notificationPublisherService.addNotification(transaction.getId(),TransactionType.TRANSFER,transaction.getSourceWalletId(),transaction.getAmount(),"TRANSFER_FAILED","TRANSFER FAILED OF ₹");
             throw new RuntimeException("Failed to finalize SAGA and save outbox event", e);
         }
 
     }
 
-    public String fallbackSaga(TransferRequestDTO requestDTO, Throwable throwable) {
+    public TransferResponseDTO fallbackSaga(TransferRequestDTO requestDTO, Throwable throwable) {
         System.err.println("SAGA FAILED AFTER RETRIES OR CIRCUIT OPEN: " + throwable.getMessage());
         throw new RuntimeException("Service currently degraded. Please try again later.");
     }

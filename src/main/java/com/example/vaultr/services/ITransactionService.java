@@ -13,8 +13,6 @@ public interface ITransactionService {
     TransactionResponseDTO getTransactionByTransactionId(String id) throws Exception;
     List<Transaction> getTransactionsByWalletId(String walletId) throws Exception;
 
-    List<Transaction> getTransactionsByStatus(TransactionStatus status) throws Exception;
-
     Transaction getTransactionsBySagaInstanceId(String sagaInstanceId) throws Exception;
 
     List<Transaction> getTransactionsBySourceWalletId(String walletId) throws Exception;

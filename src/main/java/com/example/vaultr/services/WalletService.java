@@ -1,19 +1,19 @@
 package com.example.vaultr.services;
 
-import com.example.vaultr.dto.CreateWalletRequestDTO;
 import com.example.vaultr.dto.CreditWalletRequestDTO;
 import com.example.vaultr.dto.DebitWalletRequestDTO;
 import com.example.vaultr.entities.User;
 import com.example.vaultr.entities.Wallet;
 import com.example.vaultr.enums.TransactionStatus;
+import com.example.vaultr.enums.TransactionType;
 import com.example.vaultr.exceptions.DuplicateResourceException;
 import com.example.vaultr.exceptions.InsufficientBalanceException;
 import com.example.vaultr.exceptions.ResourceNotFoundException;
 import com.example.vaultr.repositories.WalletRepository;
-import com.example.vaultr.utils.IdGenerator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 
@@ -22,10 +22,15 @@ import java.math.BigDecimal;
 public class WalletService implements IWalletService {
     private final WalletRepository walletRepository;
     private final ITransactionService transactionService;
+    private final ObjectMapper objectMapper;
+    private final NotificationPublisherService notificationPublisherService;
 
-    public WalletService(WalletRepository walletRepository, ITransactionService transactionService) {
+
+    public WalletService(WalletRepository walletRepository, ITransactionService transactionService, ObjectMapper objectMapper, NotificationPublisherService notificationPublisherService) {
         this.walletRepository = walletRepository;
         this.transactionService = transactionService;
+        this.objectMapper = objectMapper;
+        this.notificationPublisherService = notificationPublisherService;
     }
 
     @Override
@@ -69,6 +74,7 @@ public class WalletService implements IWalletService {
         wallet.creditAmount(amount);
         walletRepository.save(wallet);
         transactionService.updateTransactionStatusWithTransactionId(transactionId, TransactionStatus.COMPLETED);
+        notificationPublisherService.addNotification(transactionId,TransactionType.DEPOSIT,userId,amount,"WALLET_CREDITED","You credited funds of ₹");
         return wallet;
     }
 
@@ -88,6 +94,7 @@ public class WalletService implements IWalletService {
         wallet.debitAmount(amount);
         walletRepository.save(wallet);
         transactionService.updateTransactionStatusWithTransactionId(transactionId, TransactionStatus.COMPLETED);
+        notificationPublisherService.addNotification(transactionId,TransactionType.WITHDRAWAL,userId,amount,"WALLET_DEBITED","You did withdrawal funds of ₹");
         return wallet;
     }
 

@@ -23,7 +23,7 @@ public class SagaReconciler {
     private final ITransactionService transactionService;
 
     private static final int MAX_RETRIES = 5;
-    private static final int STALE_MINUTES = 2; // 2 minutes for testing, 5 for prod
+    private static final int STALE_MINUTES = 5;
 
     public SagaReconciler(SagaInstanceRepository sagaInstanceRepository, ITransferSAGAService transferSAGAService, ISagaOrchestrator sagaOrchestrator, ITransactionService transactionService) {
         this.sagaInstanceRepository = sagaInstanceRepository;
@@ -32,7 +32,7 @@ public class SagaReconciler {
         this.transactionService = transactionService;
     }
 
-    @Scheduled(fixedDelay = 60000) // Runs every minute
+    @Scheduled(fixedDelay = 60000)
     public void reconcileSagas() {
         log.info("Starting Saga Reconciliation Scan...");
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(STALE_MINUTES);
@@ -42,17 +42,16 @@ public class SagaReconciler {
     }
 
     private void reconcileInProgressSagas(LocalDateTime threshold) {
-        // Fetch STARTED and PROCESSING
         List<SagaInstance> staleSagas = sagaInstanceRepository.findByStatusAndUpdatedAtBeforeAndRetryCountLessThan(SagaStatus.PROCESSING, threshold, MAX_RETRIES);
         staleSagas.addAll(sagaInstanceRepository.findByStatusAndUpdatedAtBeforeAndRetryCountLessThan(SagaStatus.STARTED, threshold, MAX_RETRIES));
 
         for (SagaInstance saga : staleSagas) {
             try {
-                log.warn("Reconciling Stale IN_PROGRESS Saga: {}", saga.getId());
+                log.warn("Reconciling Stale PROGRESSING Saga: {}", saga.getId());
                 incrementRetryCount(saga);
                 transferSAGAService.executeTransfer(saga.getId());
             } catch (Exception e) {
-                log.error("Failed to reconcile IN_PROGRESS Saga {}: {}", saga.getId(), e.getMessage());
+                log.error("Failed to reconcile PROGRESSING Saga {}: {}", saga.getId(), e.getMessage());
                 handleTerminalFailure(saga);
             }
         }
@@ -76,7 +75,7 @@ public class SagaReconciler {
 
     private void incrementRetryCount(SagaInstance saga) {
         saga.setRetryCount(saga.getRetryCount() + 1);
-        sagaInstanceRepository.save(saga); // Optimistic locking (@Version) protects this!
+        sagaInstanceRepository.save(saga);
     }
 
     private void handleTerminalFailure(SagaInstance saga) {
@@ -84,7 +83,6 @@ public class SagaReconciler {
             log.error("CRITICAL: Saga {} has reached max retries. Escalating to TERMINAL_FAILURE. Manual intervention required.", saga.getId());
             saga.setStatus(SagaStatus.TERMINAL_FAILURE);
             sagaInstanceRepository.save(saga);
-            // TODO: Push to Dead Letter Queue (DLQ) or send a Slack/PagerDuty alert!
         }
     }
 }

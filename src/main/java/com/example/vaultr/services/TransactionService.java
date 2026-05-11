@@ -53,15 +53,6 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
-    public List<Transaction> getTransactionsByStatus(TransactionStatus status) {
-        List<Transaction> transactions = transactionRepository.findByStatus(status);
-        if (transactions.isEmpty()) {
-            throw new ResourceNotFoundException("No transactions found with status: " + status);
-        }
-        return transactions;
-    }
-
-    @Override
     public Transaction getTransactionsBySagaInstanceId(String sagaInstanceId) {
         Transaction transactions = transactionRepository.findBySagaInstanceId(sagaInstanceId);
         if (transactions == null) {
@@ -93,6 +84,9 @@ public class TransactionService implements ITransactionService {
     public Transaction createTransaction(String sourceWalletId, String destinationWalletId, BigDecimal amount) {
         log.info("Creating Transaction with sourceWalletId {} DestinationWallet Id {} amount {}", sourceWalletId,
                 destinationWalletId, amount);
+        if(sourceWalletId.equals(destinationWalletId)){
+            return null;
+        }
         Transaction transaction = Transaction.builder()
                 .id(IdGenerator.generateId())
                 .sourceWalletId(sourceWalletId)

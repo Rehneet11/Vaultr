@@ -67,7 +67,6 @@ public class TransactionController {
             TransferRequestDTO transferRequestDTO) throws Exception {
 
         TransferResponseDTO responseDTO = transferSAGAService.initiateTransfer(transferRequestDTO);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
