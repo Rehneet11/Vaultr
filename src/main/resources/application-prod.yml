@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:shardingsphere:file:/tmp/sharding.yml
+    url: jdbc:shardingsphere:file:/app/tmp/sharding.yml
   jpa:
     show-sql: false
     properties:

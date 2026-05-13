@@ -23,8 +23,8 @@ for var in $required_vars; do
   fi
 done
 
-envsubst < /app/config/sharding.yml.template > /tmp/sharding.yml
+envsubst < /app/config/sharding.yml.template > /app/tmp/sharding.yml
 
 exec java $JAVA_OPTS \
-  -Dspring.datasource.url=jdbc:shardingsphere:file:/tmp/sharding.yml \
+  -Dspring.datasource.url=jdbc:shardingsphere:file:/app/tmp/sharding.yml \
   -jar /app/vaultr.jar

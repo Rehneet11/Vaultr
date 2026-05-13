@@ -24,6 +24,7 @@ COPY --from=build /workspace/build/libs/*.jar /app/vaultr.jar
 COPY docker/sharding.yml.template /app/config/sharding.yml.template
 COPY docker/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh \
+    && mkdir -p /app/tmp \
     && chown -R vaultr:vaultr /app
 
 ENV SPRING_PROFILES_ACTIVE=prod \
