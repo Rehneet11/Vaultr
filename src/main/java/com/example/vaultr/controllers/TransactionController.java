@@ -50,16 +50,12 @@ public class TransactionController {
 
             @ApiResponse(responseCode = "400", description = "Invalid Request or Validation Error",
                     content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ApiValidationErrorResponseDTO.class))),
-            @ApiResponse(responseCode = "425", description = "Concurrent Request Detected",
-                    content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ApiConcurrentRequestErrorResponseDTO.class))),
-            @ApiResponse(responseCode = "422", description = "Insufficient Balance",
-                    content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ApiErrorResponseDTO.class))),
-            @ApiResponse(responseCode = "429", description = "Rate Limit Exceeded",
+             @ApiResponse(responseCode = "429", description = "Rate Limit Exceeded",
                     content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ApiErrorResponseDTO.class)))
     })
     public ResponseEntity<TransferResponseDTO> createTransaction(
             @RequestHeader("Idempotency-Key")
-            @Parameter(description = "Client-generated UUID v4 to prevent duplicate transfers", required = true)
+            @Parameter(description = "Client-generated UUID v4 to prevent duplicate transfers. You can write random string as Idempotency Key for testing this API.", required = true)
             String idempotencyKey,
 
             @Valid @RequestBody
