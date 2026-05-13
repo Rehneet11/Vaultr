@@ -279,6 +279,132 @@ outbox event write, and Kafka publish.
 ### Zipkin — 35+ spans per SAGA transaction
 ![Zipkin](docs/ZIPKIN.png)
 
+```md
+## Download and Run Locally
+
+Vaultr is a Spring Boot backend that requires external **MySQL/TiDB**, **Redis**, and **Kafka** instances. Prometheus, Grafana, and Zipkin are optional and only used for local observability.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Rehneet11/vaultr.git
+cd vaultr
+```
+
+### 2. Create Environment File
+
+Create a `.env` file in the project root:
+
+```env
+REDIS_URL=redis://default:password@your-redis-host:6379
+
+KAFKA_SERVER=your-kafka-host:9093
+KAFKA_GROUP_ID=vaultr-local
+KAFKA_CA_PEM=-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----
+KAFKA_SVC_PEM=-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----
+
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_URL=jdbc:shardingsphere:absolutepath:/opt/vaultr/sharding.yml
+```
+
+### 3. Add ShardingSphere Config
+
+Create a `sharding.yml` file with your database shard configuration.
+
+Example structure:
+
+```yml
+dataSources:
+  shard_0:
+    jdbcUrl: jdbc:mysql://your-db-host-1:3306/vaultrshard1
+    username: your_username
+    password: your_password
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+
+  shard_1:
+    jdbcUrl: jdbc:mysql://your-db-host-2:3306/vaultrshard2
+    username: your_username
+    password: your_password
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+```
+
+Use the full `src/main/resources/sharding.yml` file as a reference for tables and sharding rules.
+
+### 4. Run with Docker
+
+Build the image:
+
+```bash
+docker build -t vaultr:local .
+```
+
+Run the container:
+
+```bash
+docker run --name vaultr_backend \
+  --env-file .env \
+  -p 8080:8080 \
+  -v "$(pwd)/sharding.yml:/opt/vaultr/sharding.yml:ro" \
+  -d vaultr:local
+```
+
+View logs:
+
+```bash
+docker logs -f vaultr_backend
+```
+
+Health check:
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+Swagger UI:
+
+```bash
+http://localhost:8080/swagger-ui.html
+```
+
+### 5. Run from Source
+
+Requirements:
+
+- Java 21
+- Gradle wrapper included
+- External Redis, Kafka, and MySQL/TiDB configured
+
+Run:
+
+```bash
+export $(cat .env | xargs)
+./gradlew bootRun
+```
+
+### 6. Optional Observability Stack
+
+Start local observability tools:
+
+```bash
+docker compose up -d
+```
+
+This starts:
+
+- Zipkin: `http://localhost:9411`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
+Stop everything:
+
+```bash
+docker stop vaultr_backend
+docker rm vaultr_backend
+docker compose down
+```
+
 
 ## A Note on Scope
 
