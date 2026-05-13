@@ -2,13 +2,12 @@
 
 A distributed P2P payment wallet engineered for correctness 
 under failure — not just the happy path.
+**250 TPS · sub-60ms p99 · 35+ trace spans per transaction**
 
  ## 🚀 Live Demo
 The Vaultr backend is currently live and available for testing via the interactive Swagger UI.
 
 Interactive API Docs: https://vaultr-api.tech/swagger-ui.html
-
-**250 TPS · sub-60ms p99 · 35+ trace spans per transaction**
 
 ## The Inspiration
 
