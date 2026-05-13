@@ -16,11 +16,17 @@ public class KafkaPemConfig {
     @Value("${KAFKA_SVC_PEM}")
     private String kafkaSVCPem;
 
+    @Value("${spring.kafka.properties.ssl.truststore.location}")
+    private String kafkaCaPath;
+
+    @Value("${spring.kafka.properties.ssl.keystore.location}")
+    private String kafkaSvcPath;
+
     @PostConstruct
     public void setupPemFiles() throws Exception {
 
-        writeFile("/tmp/ca.pem", kafkaCaPem.replace("\\n", "\n"));
-        writeFile("/tmp/svc.pem", kafkaSVCPem.replace("\\n", "\n"));
+        writeFile(kafkaCaPath, kafkaCaPem.replace("\\n", "\n"));
+        writeFile(kafkaSvcPath, kafkaSVCPem.replace("\\n", "\n"));
     }
 
     private void writeFile(String path, String content) throws Exception {

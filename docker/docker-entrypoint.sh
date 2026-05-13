@@ -7,12 +7,6 @@ KAFKA_SERVER
 KAFKA_GROUP_ID
 KAFKA_CA_PEM
 KAFKA_SVC_PEM
-DB_SHARD_0_URL
-DB_SHARD_0_USERNAME
-DB_SHARD_0_PASSWORD
-DB_SHARD_1_URL
-DB_SHARD_1_USERNAME
-DB_SHARD_1_PASSWORD
 "
 
 for var in $required_vars; do
@@ -23,8 +17,9 @@ for var in $required_vars; do
   fi
 done
 
-envsubst < /app/config/sharding.yml.template > /app/tmp/sharding.yml
+if [ ! -r /opt/vaultr/sharding.yml ]; then
+  echo "Missing readable ShardingSphere config: /opt/vaultr/sharding.yml" >&2
+  exit 1
+fi
 
-exec java $JAVA_OPTS \
-  -Dspring.datasource.url=jdbc:shardingsphere:file:/app/tmp/sharding.yml \
-  -jar /app/vaultr.jar
+exec java $JAVA_OPTS -jar /app/vaultr.jar

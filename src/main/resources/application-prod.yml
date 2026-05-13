@@ -1,6 +1,10 @@
 spring:
   datasource:
-    url: jdbc:shardingsphere:file:/app/tmp/sharding.yml
+    url: ${SPRING_DATASOURCE_URL:jdbc:shardingsphere:absolutepath:/opt/vaultr/sharding.yml}
+  kafka:
+    properties:
+      ssl.truststore.location: /app/tmp/ca.pem
+      ssl.keystore.location: /app/tmp/svc.pem
   jpa:
     show-sql: false
     properties:
