@@ -6,6 +6,7 @@ import com.example.vaultr.dto.ApiErrorResponseDTO;
 import com.example.vaultr.dto.ApiValidationErrorResponseDTO;
 import com.example.vaultr.dto.UserResponseDTO;
 import com.example.vaultr.services.IUserService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
+@RateLimiter(name = "userApi")
 @Tag(name = "Users", description = "User Management and Onboarding API")
 public class UserController {
     private final IUserService userService;

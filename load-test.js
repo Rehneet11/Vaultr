@@ -15,12 +15,12 @@ function generateIdempotencyKey() {
 }
 
 export default function () {
-    const url = 'http://localhost:8080/api/transactions';
+    const url = 'http://157.230.249.218:8080/api/transactions';
 
     const payload = JSON.stringify({
-        sourceWalletId: "1259121142065528832",
-        destinationWalletId: "1259121205315633153",
-        amount: Math.floor(Math.random() * 5) + 1
+        sourceWalletId: "01KRH1MDST50WZA2HXJ4K9BJE4",
+        destinationWalletId: "01KRH1PQ3BPYM1MRSGS0NBRY4T",
+        amount: 1
     });
 
     // Inject the required header here

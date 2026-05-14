@@ -26,7 +26,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/wallets")
 @Slf4j
-@RateLimiter(name = "api")
+@RateLimiter(name = "walletApi")
 @Tag(name = "Wallets", description = "Core Ledger & Wallet Balance Operations")
 public class WalletController {
     private final IWalletService walletService;

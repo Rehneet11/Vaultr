@@ -5,6 +5,7 @@ import com.example.vaultr.entities.Notification;
 import com.example.vaultr.exceptions.ResourceNotFoundException;
 import com.example.vaultr.repositories.NotificationRepository;
 import com.example.vaultr.repositories.UserRepository;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/notifications")
+@RateLimiter(name = "notificationApi")
 @Tag(name = "Notifications", description = "Async Event Notification API")
 public class NotificationController {
 

@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.*;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 import com.example.vaultr.entities.Transaction;
-import com.example.vaultr.enums.TransactionStatus;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transactions") // Fixed: Added leading slash
+@RequestMapping("/api/transactions")
+@RateLimiter(name = "transactionApi")
 @Tag(name = "Transactions", description = "Distributed P2P SAGA Transfer API")
 public class TransactionController {
     private final ITransactionService transactionService;
@@ -40,7 +40,6 @@ public class TransactionController {
 
     @Idempotent
     @PostMapping
-    @RateLimiter(name = "transactionApi")
     @Operation(
             summary = "Initiate a P2P Transfer",
             description = "Triggers a distributed SAGA transaction to transfer funds between two sharded wallets. Requires an Idempotency-Key header."
