@@ -1,5 +1,7 @@
 # Vaultr
 
+![Build Status](https://github.com/Rehneet11/vaultr/actions/workflows/build.yml/badge.svg)
+
 A distributed P2P payment wallet engineered for correctness 
 under failure — not just the happy path.
 
